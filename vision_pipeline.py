@@ -66,32 +66,46 @@ def generate_mask(image_path: str, target: str = "weapon") -> str:
 
 
 def _yolo_mask(image_path, target, w, h):
-    """Try to detect objects using YOLOv8-seg and create mask."""
+    """Try to detect objects using YOLO-World (Open Vocabulary) and create mask."""
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-seg.pt")
-    results = model.predict(source=image_path, conf=0.25, verbose=False)
+    # Use YOLO-World to detect objects not in standard COCO
+    model = YOLO("yolov8s-world.pt")
+    
+    # Set custom open-vocabulary classes
+    if target == "weapon":
+        model.set_classes(["rifle", "gun", "weapon"])
+    else:
+        model.set_classes(["badge", "insignia", "patch"])
 
-    # COCO classes that might relate to weapons/badges
-    # Note: COCO has limited weapon coverage — no "rifle" class exists.
-    weapon_classes = {43: "knife", 76: "scissors"}
-    badge_classes = {}  # COCO doesn't have badge class
+    results = model.predict(source=image_path, conf=0.15, verbose=False)
 
-    target_classes = weapon_classes if target == "weapon" else badge_classes
-
-    # Only use masks for objects whose COCO class actually matches the target
     for result in results:
-        if result.masks is None:
-            continue
-        for i, cls_id in enumerate(result.boxes.cls.cpu().numpy()):
-            if int(cls_id) in target_classes:
-                # Use the segmentation mask
-                seg_mask = result.masks.data[i].cpu().numpy()
-                seg_mask = (seg_mask * 255).astype(np.uint8)
-                mask_img = Image.fromarray(seg_mask).resize((w, h))
-                # Dilate the mask slightly for better inpainting
-                mask_img = mask_img.filter(ImageFilter.MaxFilter(15))
-                return mask_img
+        if len(result.boxes) > 0:
+            # Get the highest confidence bounding box
+            best_box = max(result.boxes, key=lambda b: float(b.conf[0]))
+            xyxy = best_box.xyxy[0].cpu().numpy()
+            x1, y1, x2, y2 = map(int, xyxy)
+            
+            # Create a soft elliptical mask over the bounding box
+            mask = Image.new("L", (w, h), 0)
+            draw = ImageDraw.Draw(mask)
+            
+            # Expand the bounding box slightly for natural blending
+            padding_x = int((x2 - x1) * 0.15)
+            padding_y = int((y2 - y1) * 0.15)
+            nx1 = max(0, x1 - padding_x)
+            ny1 = max(0, y1 - padding_y)
+            nx2 = min(w, x2 + padding_x)
+            ny2 = min(h, y2 + padding_y)
+            
+            draw.ellipse([nx1, ny1, nx2, ny2], fill=255)
+            
+            # Blur edges for smooth transition during inpainting
+            mask = mask.filter(ImageFilter.GaussianBlur(radius=15))
+            # Re-threshold to get a solid core with soft edges
+            mask = mask.point(lambda p: 255 if p > 64 else 0)
+            return mask
 
     return None
 
