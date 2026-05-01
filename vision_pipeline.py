@@ -109,10 +109,12 @@ def _cv_fallback_mask(image_path, target, w, h):
     x2, y2 = int(rx2 * w), int(ry2 * h)
 
     roi = gray[y1:y2, x1:x2]
-    edges = cv2.Canny(roi, 50, 150)
-    # Dilate edges to create a connected mask
-    kernel = np.ones((15, 15), np.uint8)
-    dilated = cv2.dilate(edges, kernel, iterations=3)
+    # Use tighter edge detection
+    edges = cv2.Canny(roi, 100, 200)
+    
+    # Mildly dilate edges to create a connected but tight mask
+    kernel = np.ones((5, 5), np.uint8)
+    dilated = cv2.dilate(edges, kernel, iterations=2)
 
     # Find contours
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -127,10 +129,14 @@ def _cv_fallback_mask(image_path, target, w, h):
         c[:, :, 1] += y1
     largest = max(contours, key=cv2.contourArea)
     cv2.drawContours(mask, [largest], -1, 255, -1)
-    # Dilate for safety margin
-    mask = cv2.dilate(mask, np.ones((21, 21), np.uint8), iterations=2)
+    
+    # Small final dilation for a slight safety margin, smooth edges
+    mask = cv2.dilate(mask, np.ones((9, 9), np.uint8), iterations=1)
+    
+    # Soften the edges of the mask
+    mask_img = Image.fromarray(mask).filter(ImageFilter.GaussianBlur(radius=3))
 
-    return Image.fromarray(mask)
+    return mask_img
 
 
 def _predefined_mask(w, h, target):
@@ -170,8 +176,10 @@ def inpaint_image(original_path: str, mask_path: str, target: str) -> str:
 def _inpaint_hf_api(original_path, mask_path, target):
     """Use HuggingFace Inference API for inpainting."""
     token = os.getenv("HF_API_TOKEN", "")
-    # Using stabilityai model which is often more stable for the inference API
-    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-inpainting"
+    
+    """API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-inpainting" """
+    # Using runwayml model for reliable inpainting on the inference API
+    API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting"
     headers = {"Authorization": f"Bearer {token}"}
     prompt = INPAINT_PROMPTS[target]
 
