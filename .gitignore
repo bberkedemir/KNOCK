@@ -1,0 +1,9 @@
+__pycache__/
+.env
+static/mask_*.png
+static/soldier_*_removed.png
+frontend/node_modules/
+frontend/dist/
+*.pyc
+.vscode/
+
