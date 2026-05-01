@@ -156,6 +156,12 @@ def _predefined_mask(w, h, target):
 def inpaint_image(original_path: str, mask_path: str, target: str) -> str:
     """Inpaint the masked region using configured method."""
     mode = os.getenv("INPAINT_MODE", "api")
+    allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
+
+    if mode == "local" and not allow_local:
+        print("[INPAINT] Local mode requested but disabled by flag. Forcing API.")
+        mode = "api"
+
     if mode == "local":
         return _inpaint_local(original_path, mask_path, target)
     return _inpaint_hf_api(original_path, mask_path, target)
@@ -200,8 +206,13 @@ def _inpaint_hf_api(original_path, mask_path, target):
         print(f"[INPAINT] HF API request failed: {e}")
 
     if result is None:
-        print("[INPAINT] Falling back to simple blend")
-        result = _simple_blend_fallback(original_path, mask_path)
+        allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
+        if allow_local:
+            print("[INPAINT] Falling back to simple blend")
+            result = _simple_blend_fallback(original_path, mask_path)
+        else:
+            print("[INPAINT] HF API failed and local fallback is disabled.")
+            raise RuntimeError("HuggingFace API failed and local fallback is disabled.")
 
     output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
     # Resize back to original size
@@ -213,6 +224,11 @@ def _inpaint_hf_api(original_path, mask_path, target):
 
 def _inpaint_local(original_path, mask_path, target):
     """Run diffusers locally (requires GPU for speed)."""
+    allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
+    if not allow_local:
+        print("[INPAINT] Local mode disabled by flag.")
+        raise RuntimeError("Local inpainting is disabled by ALLOW_LOCAL_INPAINT flag.")
+
     try:
         import torch
         from diffusers import StableDiffusionInpaintPipeline
@@ -232,9 +248,14 @@ def _inpaint_local(original_path, mask_path, target):
         result = result.resize(orig_size, Image.LANCZOS)
         result.save(output_path)
         return output_path
-    except ImportError:
-        print("[INPAINT] diffusers not installed, using blend fallback")
-        return _simple_blend_fallback_save(original_path, mask_path, target)
+    except Exception as e:
+        allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
+        if allow_local:
+            print(f"[INPAINT] Local diffusers failed: {e}. Falling back to simple blend.")
+            return _simple_blend_fallback_save(original_path, mask_path, target)
+        else:
+            print(f"[INPAINT] Local diffusers failed: {e}. Local fallback is disabled.")
+            raise
 
 
 def _simple_blend_fallback(original_path, mask_path):
