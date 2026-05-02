@@ -28,6 +28,7 @@ function buildDOM(): void {
     <div class="status-bar">
       <div class="title">TERMINAL '73 — U.S. ARMED FORCES PSYCH-EVAL SYSTEM v3.7.1</div>
       <div class="status-right">
+        <button id="debug-weapon" class="debug-btn">DEBUG: REMOVE WEAPON</button>
         <span id="phase-label" style="font-size:12px;letter-spacing:1px;">PHASE 1: WEAPON ACTIVE</span>
         <div class="status-indicator">
           <div id="status-dot" class="status-dot"></div>
@@ -73,6 +74,18 @@ function buildDOM(): void {
     if (e.key === 'Enter' && !isProcessing) {
       const msg = chatInput!.value.trim();
       if (msg) handleUserInput(msg);
+    }
+  });
+
+  // Debug handler
+  const debugBtn = document.getElementById('debug-weapon')!;
+  debugBtn.addEventListener('click', async () => {
+    appendSystemMessage('DEBUG: TRIGGERING INSTANT WEAPON REMOVAL...');
+    try {
+      await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'weapon'));
+      handleSurrender('weapon');
+    } catch (err: any) {
+      appendSystemMessage(`DEBUG ERROR: ${err.message}`);
     }
   });
 }
@@ -235,7 +248,7 @@ async function handleSurrender(type: string): Promise<void> {
 async function pollInpaintStatus(): Promise<string | null> {
   const maxAttempts = 60; // 60 * 2s = 2 min max
   for (let i = 0; i < maxAttempts; i++) {
-    await delay(2000);
+    await delay(5000);
     try {
       const status = await checkInpaintStatus(sessionId);
       if (status.status === 'done') return status.current_image;
