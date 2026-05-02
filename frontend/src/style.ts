@@ -111,7 +111,9 @@ html, body {
 }
 
 .status-bar .status-right {
-  display: flex; gap: 20px; align-items: center;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .status-indicator {
@@ -445,6 +447,27 @@ html, body {
   50% { filter: brightness(1.5); transform: scale(1, 0.005); }
   60% { filter: brightness(2); transform: scale(0.3, 0.005); }
   100% { filter: brightness(0); transform: scale(0, 0); }
+}
+
+/* ================================================================
+   DEBUG TOOLS
+   ================================================================ */
+.debug-btn {
+  background: #1a4a1a;
+  border: 1px solid #33ff33;
+  color: #33ff33;
+  padding: 4px 10px;
+  font-family: 'VT323', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.debug-btn:hover {
+  background: #33ff33;
+  color: #000;
+  box-shadow: 0 0 10px #33ff33;
 }
 
 /* ================================================================
