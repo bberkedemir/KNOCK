@@ -63,7 +63,8 @@ def _yolo_mask(image_path, target, w, h):
     else:
         model.set_classes(["badge", "insignia", "patch"])
 
-    results = model.predict(source=image_path, conf=0.15, verbose=False)
+    # Use half=False to avoid dtype mismatch errors between CLIP and YOLO on some GPUs
+    results = model.predict(source=image_path, conf=0.15, verbose=False, half=False)
 
     for result in results:
         if len(result.boxes) > 0:
