@@ -164,10 +164,14 @@ def _inpaint_hf_api(original_path, mask_path, target):
             raise RuntimeError("HuggingFace API failed and local fallback is disabled.")
 
     output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
-    # Resize back to original size
-    orig_size = Image.open(original_path).size
-    result = result.resize(orig_size, Image.LANCZOS)
-    result.save(output_path)
+    # Composite result back onto original to perfectly preserve unmasked areas (like the face)
+    original = Image.open(original_path).convert("RGB")
+    mask = Image.open(mask_path).convert("L")
+    
+    result_resized = result.resize(original.size, Image.LANCZOS)
+    final = Image.composite(result_resized, original, mask)
+    
+    final.save(output_path)
     return output_path
 
 
@@ -193,9 +197,14 @@ def _inpaint_local(original_path, mask_path, target):
         result = pipe(prompt=prompt, image=img, mask_image=msk).images[0]
 
         output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
-        orig_size = Image.open(original_path).size
-        result = result.resize(orig_size, Image.LANCZOS)
-        result.save(output_path)
+        # Composite result back onto original to perfectly preserve unmasked areas (like the face)
+        original = Image.open(original_path).convert("RGB")
+        mask = Image.open(mask_path).convert("L")
+        
+        result_resized = result.resize(original.size, Image.LANCZOS)
+        final = Image.composite(result_resized, original, mask)
+        
+        final.save(output_path)
         return output_path
     except Exception as e:
         print(f"[INPAINT] Local diffusers failed: {e}")
