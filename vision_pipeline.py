@@ -12,11 +12,7 @@ load_dotenv()
 
 STATIC_DIR = Path(__file__).parent / "static"
 
-# Predefined fallback regions (x1, y1, x2, y2) as fractions of image size
-FALLBACK_REGIONS = {
-    "weapon": (0.32, 0.42, 0.52, 0.92),   # narrow strip over the rifle
-    "badge":  (0.25, 0.20, 0.45, 0.40),    # left chest area
-}
+
 
 INPAINT_PROMPTS = {
     "weapon": "A tired soldier standing at ease with empty relaxed hands, "
@@ -44,19 +40,8 @@ def generate_mask(image_path: str, target: str = "weapon") -> str:
     except Exception as e:
         print(f"[MASK] YOLOv8 failed: {e}")
 
-    # Strategy 2: OpenCV edge-based detection in expected region
     if mask is None:
-        try:
-            mask = _cv_fallback_mask(image_path, target, w, h)
-            if mask is not None:
-                print(f"[MASK] CV fallback detected {target}")
-        except Exception as e:
-            print(f"[MASK] CV fallback failed: {e}")
-
-    # Strategy 3: Predefined rectangular region
-    if mask is None:
-        print(f"[MASK] Using predefined region for {target}")
-        mask = _predefined_mask(w, h, target)
+        raise RuntimeError(f"YOLO-World failed to detect {target}")
 
     # Save mask as PNG with white = area to inpaint, black = keep
     mask_path = str(STATIC_DIR / f"mask_{target}.png")
@@ -110,64 +95,7 @@ def _yolo_mask(image_path, target, w, h):
     return None
 
 
-def _cv_fallback_mask(image_path, target, w, h):
-    """Use OpenCV edge detection in the expected region."""
-    import cv2
 
-    img = cv2.imread(image_path)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Get expected region
-    rx1, ry1, rx2, ry2 = FALLBACK_REGIONS[target]
-    x1, y1 = int(rx1 * w), int(ry1 * h)
-    x2, y2 = int(rx2 * w), int(ry2 * h)
-
-    roi = gray[y1:y2, x1:x2]
-    # Use tighter edge detection
-    edges = cv2.Canny(roi, 100, 200)
-    
-    # Mildly dilate edges to create a connected but tight mask
-    kernel = np.ones((5, 5), np.uint8)
-    dilated = cv2.dilate(edges, kernel, iterations=2)
-
-    # Find contours
-    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    if len(contours) == 0:
-        return None
-
-    # Create mask from largest contour
-    mask = np.zeros((h, w), dtype=np.uint8)
-    for c in contours:
-        c[:, :, 0] += x1
-        c[:, :, 1] += y1
-    largest = max(contours, key=cv2.contourArea)
-    cv2.drawContours(mask, [largest], -1, 255, -1)
-    
-    # Small final dilation for a slight safety margin, smooth edges
-    mask = cv2.dilate(mask, np.ones((9, 9), np.uint8), iterations=1)
-    
-    # Soften the edges of the mask
-    mask_img = Image.fromarray(mask).filter(ImageFilter.GaussianBlur(radius=3))
-
-    return mask_img
-
-
-def _predefined_mask(w, h, target):
-    """Create a soft elliptical mask in the predefined region."""
-    rx1, ry1, rx2, ry2 = FALLBACK_REGIONS[target]
-    x1, y1 = int(rx1 * w), int(ry1 * h)
-    x2, y2 = int(rx2 * w), int(ry2 * h)
-
-    mask = Image.new("L", (w, h), 0)
-    draw = ImageDraw.Draw(mask)
-    # Draw ellipse for more natural inpainting
-    draw.ellipse([x1, y1, x2, y2], fill=255)
-    # Blur edges for smooth transition
-    mask = mask.filter(ImageFilter.GaussianBlur(radius=20))
-    # Re-threshold
-    mask = mask.point(lambda p: 255 if p > 64 else 0)
-    return mask
 
 
 # ---------------------------------------------------------------------------
@@ -228,13 +156,7 @@ def _inpaint_hf_api(original_path, mask_path, target):
         print(f"[INPAINT] HF API request failed: {e}")
 
     if result is None:
-        allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
-        if allow_local:
-            print("[INPAINT] Falling back to simple blend")
-            result = _simple_blend_fallback(original_path, mask_path)
-        else:
-            print("[INPAINT] HF API failed and local fallback is disabled.")
-            raise RuntimeError("HuggingFace API failed and local fallback is disabled.")
+        raise RuntimeError("HuggingFace API failed.")
 
     output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
     # Resize back to original size
@@ -271,37 +193,11 @@ def _inpaint_local(original_path, mask_path, target):
         result.save(output_path)
         return output_path
     except Exception as e:
-        allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
-        if allow_local:
-            print(f"[INPAINT] Local diffusers failed: {e}. Falling back to simple blend.")
-            return _simple_blend_fallback_save(original_path, mask_path, target)
-        else:
-            print(f"[INPAINT] Local diffusers failed: {e}. Local fallback is disabled.")
-            raise
+        print(f"[INPAINT] Local diffusers failed: {e}")
+        raise RuntimeError(f"Local diffusers failed: {e}")
 
 
-def _simple_blend_fallback(original_path, mask_path):
-    """Local fallback: use OpenCV inpainting to fill masked region from surrounding pixels."""
-    import cv2
 
-    img = cv2.imread(original_path)
-    msk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    if msk.shape[:2] != img.shape[:2]:
-        msk = cv2.resize(msk, (img.shape[1], img.shape[0]))
-    # Threshold mask to binary
-    _, msk = cv2.threshold(msk, 127, 255, cv2.THRESH_BINARY)
-
-    # Telea inpainting — fills from boundary inward using surrounding pixel context
-    result = cv2.inpaint(img, msk, inpaintRadius=12, flags=cv2.INPAINT_TELEA)
-    # Convert back to PIL
-    return Image.fromarray(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
-
-
-def _simple_blend_fallback_save(original_path, mask_path, target):
-    result = _simple_blend_fallback(original_path, mask_path)
-    output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
-    result.save(output_path)
-    return output_path
 
 
 # ---------------------------------------------------------------------------
