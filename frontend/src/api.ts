@@ -43,3 +43,15 @@ export async function checkInpaintStatus(
 export function getImageUrl(filename: string): string {
   return `${API_BASE}/image/${filename}`;
 }
+
+export async function triggerDebugInpaint(
+  sessionId: string,
+  target: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/debug/inpaint/${target}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId, message: 'DEBUG_TRIGGER' }),
+  });
+  if (!res.ok) throw new Error('Failed to trigger debug inpaint');
+}

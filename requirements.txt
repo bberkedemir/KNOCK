@@ -13,7 +13,7 @@ pydantic>=2.0.0
 huggingface-hub>=0.23.0
 requests>=2.31.0
 # Optional: for local inpainting (requires CUDA GPU)
-# diffusers>=0.28.0
-# torch>=2.3.0
-# transformers>=4.40.0
-# accelerate>=0.30.0
+diffusers>=0.28.0
+torch>=2.3.0
+transformers>=4.40.0
+accelerate>=0.30.0

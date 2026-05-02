@@ -12,11 +12,7 @@ load_dotenv()
 
 STATIC_DIR = Path(__file__).parent / "static"
 
-# Predefined fallback regions (x1, y1, x2, y2) as fractions of image size
-FALLBACK_REGIONS = {
-    "weapon": (0.32, 0.42, 0.52, 0.92),   # narrow strip over the rifle
-    "badge":  (0.25, 0.20, 0.45, 0.40),    # left chest area
-}
+
 
 INPAINT_PROMPTS = {
     "weapon": "A tired soldier standing at ease with empty relaxed hands, "
@@ -44,19 +40,8 @@ def generate_mask(image_path: str, target: str = "weapon") -> str:
     except Exception as e:
         print(f"[MASK] YOLOv8 failed: {e}")
 
-    # Strategy 2: OpenCV edge-based detection in expected region
     if mask is None:
-        try:
-            mask = _cv_fallback_mask(image_path, target, w, h)
-            if mask is not None:
-                print(f"[MASK] CV fallback detected {target}")
-        except Exception as e:
-            print(f"[MASK] CV fallback failed: {e}")
-
-    # Strategy 3: Predefined rectangular region
-    if mask is None:
-        print(f"[MASK] Using predefined region for {target}")
-        mask = _predefined_mask(w, h, target)
+        raise RuntimeError(f"YOLO-World failed to detect {target}")
 
     # Save mask as PNG with white = area to inpaint, black = keep
     mask_path = str(STATIC_DIR / f"mask_{target}.png")
@@ -66,88 +51,52 @@ def generate_mask(image_path: str, target: str = "weapon") -> str:
 
 
 def _yolo_mask(image_path, target, w, h):
-    """Try to detect objects using YOLOv8-seg and create mask."""
+    """Try to detect objects using YOLO-World (Open Vocabulary) and create mask."""
     from ultralytics import YOLO
 
-    model = YOLO("yolov8n-seg.pt")
-    results = model.predict(source=image_path, conf=0.25, verbose=False)
+    # Use YOLO-World to detect objects not in standard COCO
+    model = YOLO("yolov8s-world.pt")
+    
+    # Set custom open-vocabulary classes
+    if target == "weapon":
+        model.set_classes(["rifle", "gun", "weapon"])
+    else:
+        model.set_classes(['badge', 'insignia', 'patch', 'shield', 'police badge'])
 
-    # COCO classes that might relate to weapons/badges
-    # Note: COCO has limited weapon coverage — no "rifle" class exists.
-    weapon_classes = {43: "knife", 76: "scissors"}
-    badge_classes = {}  # COCO doesn't have badge class
+    # Use half=False to avoid dtype mismatch errors between CLIP and YOLO on some GPUs
+    results = model.predict(source=image_path, conf=0.05, verbose=False, half=False)
 
-    target_classes = weapon_classes if target == "weapon" else badge_classes
-
-    # Only use masks for objects whose COCO class actually matches the target
     for result in results:
-        if result.masks is None:
-            continue
-        for i, cls_id in enumerate(result.boxes.cls.cpu().numpy()):
-            if int(cls_id) in target_classes:
-                # Use the segmentation mask
-                seg_mask = result.masks.data[i].cpu().numpy()
-                seg_mask = (seg_mask * 255).astype(np.uint8)
-                mask_img = Image.fromarray(seg_mask).resize((w, h))
-                # Dilate the mask slightly for better inpainting
-                mask_img = mask_img.filter(ImageFilter.MaxFilter(15))
-                return mask_img
+        if len(result.boxes) > 0:
+            # Get the highest confidence bounding box
+            best_box = max(result.boxes, key=lambda b: float(b.conf[0]))
+            xyxy = best_box.xyxy[0].cpu().numpy()
+            x1, y1, x2, y2 = map(int, xyxy)
+            
+            # Create a soft elliptical mask over the bounding box
+            mask = Image.new("L", (w, h), 0)
+            draw = ImageDraw.Draw(mask)
+            
+            # Expand the bounding box slightly for natural blending
+            padding_x = int((x2 - x1) * 0.15)
+            padding_y = int((y2 - y1) * 0.15)
+            nx1 = max(0, x1 - padding_x)
+            ny1 = max(0, y1 - padding_y)
+            nx2 = min(w, x2 + padding_x)
+            ny2 = min(h, y2 + padding_y)
+            
+            draw.ellipse([nx1, ny1, nx2, ny2], fill=255)
+            
+            # Blur edges for smooth transition during inpainting
+            mask = mask.filter(ImageFilter.GaussianBlur(radius=15))
+            # Re-threshold to get a solid core with soft edges
+            mask = mask.point(lambda p: 255 if p > 64 else 0)
+            return mask
 
     return None
 
 
-def _cv_fallback_mask(image_path, target, w, h):
-    """Use OpenCV edge detection in the expected region."""
-    import cv2
 
-    img = cv2.imread(image_path)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Get expected region
-    rx1, ry1, rx2, ry2 = FALLBACK_REGIONS[target]
-    x1, y1 = int(rx1 * w), int(ry1 * h)
-    x2, y2 = int(rx2 * w), int(ry2 * h)
-
-    roi = gray[y1:y2, x1:x2]
-    edges = cv2.Canny(roi, 50, 150)
-    # Dilate edges to create a connected mask
-    kernel = np.ones((15, 15), np.uint8)
-    dilated = cv2.dilate(edges, kernel, iterations=3)
-
-    # Find contours
-    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    if len(contours) == 0:
-        return None
-
-    # Create mask from largest contour
-    mask = np.zeros((h, w), dtype=np.uint8)
-    for c in contours:
-        c[:, :, 0] += x1
-        c[:, :, 1] += y1
-    largest = max(contours, key=cv2.contourArea)
-    cv2.drawContours(mask, [largest], -1, 255, -1)
-    # Dilate for safety margin
-    mask = cv2.dilate(mask, np.ones((21, 21), np.uint8), iterations=2)
-
-    return Image.fromarray(mask)
-
-
-def _predefined_mask(w, h, target):
-    """Create a soft elliptical mask in the predefined region."""
-    rx1, ry1, rx2, ry2 = FALLBACK_REGIONS[target]
-    x1, y1 = int(rx1 * w), int(ry1 * h)
-    x2, y2 = int(rx2 * w), int(ry2 * h)
-
-    mask = Image.new("L", (w, h), 0)
-    draw = ImageDraw.Draw(mask)
-    # Draw ellipse for more natural inpainting
-    draw.ellipse([x1, y1, x2, y2], fill=255)
-    # Blur edges for smooth transition
-    mask = mask.filter(ImageFilter.GaussianBlur(radius=20))
-    # Re-threshold
-    mask = mask.point(lambda p: 255 if p > 64 else 0)
-    return mask
 
 
 # ---------------------------------------------------------------------------
@@ -170,8 +119,10 @@ def inpaint_image(original_path: str, mask_path: str, target: str) -> str:
 def _inpaint_hf_api(original_path, mask_path, target):
     """Use HuggingFace Inference API for inpainting."""
     token = os.getenv("HF_API_TOKEN", "")
-    # Using stabilityai model which is often more stable for the inference API
-    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-inpainting"
+    
+    """API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-inpainting" """
+    # Using runwayml model for reliable inpainting on the inference API
+    API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting"
     headers = {"Authorization": f"Bearer {token}"}
     prompt = INPAINT_PROMPTS[target]
 
@@ -208,17 +159,20 @@ def _inpaint_hf_api(original_path, mask_path, target):
     if result is None:
         allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
         if allow_local:
-            print("[INPAINT] Falling back to simple blend")
-            result = _simple_blend_fallback(original_path, mask_path)
+            print("[INPAINT] HF API failed. Falling back to local diffusers.")
+            return _inpaint_local(original_path, mask_path, target)
         else:
-            print("[INPAINT] HF API failed and local fallback is disabled.")
             raise RuntimeError("HuggingFace API failed and local fallback is disabled.")
 
     output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
-    # Resize back to original size
-    orig_size = Image.open(original_path).size
-    result = result.resize(orig_size, Image.LANCZOS)
-    result.save(output_path)
+    # Composite result back onto original to perfectly preserve unmasked areas (like the face)
+    original = Image.open(original_path).convert("RGB")
+    mask = Image.open(mask_path).convert("L")
+    
+    result_resized = result.resize(original.size, Image.LANCZOS)
+    final = Image.composite(result_resized, original, mask)
+    
+    final.save(output_path)
     return output_path
 
 
@@ -244,42 +198,21 @@ def _inpaint_local(original_path, mask_path, target):
         result = pipe(prompt=prompt, image=img, mask_image=msk).images[0]
 
         output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
-        orig_size = Image.open(original_path).size
-        result = result.resize(orig_size, Image.LANCZOS)
-        result.save(output_path)
+        # Composite result back onto original to perfectly preserve unmasked areas (like the face)
+        original = Image.open(original_path).convert("RGB")
+        mask = Image.open(mask_path).convert("L")
+        
+        result_resized = result.resize(original.size, Image.LANCZOS)
+        final = Image.composite(result_resized, original, mask)
+        
+        final.save(output_path)
         return output_path
     except Exception as e:
-        allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
-        if allow_local:
-            print(f"[INPAINT] Local diffusers failed: {e}. Falling back to simple blend.")
-            return _simple_blend_fallback_save(original_path, mask_path, target)
-        else:
-            print(f"[INPAINT] Local diffusers failed: {e}. Local fallback is disabled.")
-            raise
+        print(f"[INPAINT] Local diffusers failed: {e}")
+        raise RuntimeError(f"Local diffusers failed: {e}")
 
 
-def _simple_blend_fallback(original_path, mask_path):
-    """Local fallback: use OpenCV inpainting to fill masked region from surrounding pixels."""
-    import cv2
 
-    img = cv2.imread(original_path)
-    msk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    if msk.shape[:2] != img.shape[:2]:
-        msk = cv2.resize(msk, (img.shape[1], img.shape[0]))
-    # Threshold mask to binary
-    _, msk = cv2.threshold(msk, 127, 255, cv2.THRESH_BINARY)
-
-    # Telea inpainting — fills from boundary inward using surrounding pixel context
-    result = cv2.inpaint(img, msk, inpaintRadius=12, flags=cv2.INPAINT_TELEA)
-    # Convert back to PIL
-    return Image.fromarray(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
-
-
-def _simple_blend_fallback_save(original_path, mask_path, target):
-    result = _simple_blend_fallback(original_path, mask_path)
-    output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
-    result.save(output_path)
-    return output_path
 
 
 # ---------------------------------------------------------------------------

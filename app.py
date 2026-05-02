@@ -153,6 +153,13 @@ async def inpaint_status(session_id: str):
     s = get_session(session_id)
     return {"status": s["inpaint_status"], "current_image": s["current_image"], "phase": s["phase"]}
 
+@app.post("/api/debug/inpaint/{target}")
+async def debug_inpaint(target: str, req: ChatRequest):
+    session = get_session(req.session_id)
+    session["inpaint_status"] = "processing"
+    asyncio.create_task(run_inpainting(req.session_id, target))
+    return {"status": "triggered"}
+
 @app.get("/api/image/{filename}")
 async def get_image(filename: str):
     p = STATIC_DIR / filename
