@@ -156,7 +156,12 @@ def _inpaint_hf_api(original_path, mask_path, target):
         print(f"[INPAINT] HF API request failed: {e}")
 
     if result is None:
-        raise RuntimeError("HuggingFace API failed.")
+        allow_local = os.getenv("ALLOW_LOCAL_INPAINT", "false").lower() == "true"
+        if allow_local:
+            print("[INPAINT] HF API failed. Falling back to local diffusers.")
+            return _inpaint_local(original_path, mask_path, target)
+        else:
+            raise RuntimeError("HuggingFace API failed and local fallback is disabled.")
 
     output_path = str(STATIC_DIR / f"soldier_{target}_removed.png")
     # Resize back to original size
