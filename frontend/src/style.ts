@@ -189,11 +189,48 @@ html, body {
               inset 0 0 60px rgba(0, 0, 0, 0.5);
 }
 
-.image-viewport img {
-  width: 100%; height: 100%;
-  object-fit: cover;
+/* ================================================================
+   SCENE CONTAINER — layered background + sprite
+   ================================================================ */
+.scene-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-image: url('/api/image/background/outpost_bg.png');
+  background-size: cover;
+  background-position: center bottom;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.subject-sprite {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 95%;
+  width: auto;
+  object-fit: contain;
+  opacity: 1;
+  transition: opacity 0.35s ease-in-out;
+  pointer-events: none;
+  /* Inherit the same film-look filter as before */
   filter: sepia(0.3) saturate(0.7) brightness(0.85) contrast(1.1);
-  transition: filter 1s ease, opacity 1s ease;
+}
+
+/* Inpainting result: hide CSS bg, show flat composite full-frame */
+.scene-container.showing-inpainted {
+  background-image: none;
+}
+.scene-container.showing-inpainted .subject-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  bottom: auto;
+  transform: none;
+  object-fit: cover;
 }
 
 /* Scanlines on image */
@@ -405,7 +442,7 @@ html, body {
 /* ================================================================
    GLITCH EFFECT on image
    ================================================================ */
-.image-viewport.glitching img {
+.image-viewport.glitching .scene-container {
   animation: img-glitch 0.15s infinite;
   filter: sepia(0.1) saturate(0.5) brightness(0.6) contrast(1.3) hue-rotate(20deg);
 }

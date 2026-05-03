@@ -85,8 +85,15 @@ export async function transitionToImage(filename: string): Promise<void> {
   imageElement.style.opacity = '0.1';
   await delay(500);
 
-  // Swap image
+  // Swap image (inpainted flat result from backend)
   imageElement.src = getImageUrl(filename);
+
+  // Mark scene as showing inpainted: remove CSS bg so flat composite fills frame
+  const sceneContainer = document.getElementById('scene-container');
+  if (sceneContainer) {
+    sceneContainer.classList.add('showing-inpainted');
+  }
+
   await new Promise<void>((resolve) => {
     imageElement!.onload = () => resolve();
     // Timeout fallback
@@ -98,6 +105,7 @@ export async function transitionToImage(filename: string): Promise<void> {
   await delay(500);
   stopGlitch();
 }
+
 
 /** Final system shutdown effect. */
 export async function triggerShutdown(): Promise<void> {
@@ -141,13 +149,13 @@ export async function triggerShutdown(): Promise<void> {
 
 /** Update status bar indicator. */
 export function setStatusIndicator(
-  level: 'normal' | 'warning' | 'critical'
+  level: 'normal' | 'warning' | 'critical' | 'error'
 ): void {
   const dot = document.getElementById('status-dot');
   if (!dot) return;
   dot.className = 'status-dot';
   if (level === 'warning') dot.classList.add('warning');
-  if (level === 'critical') dot.classList.add('critical');
+  if (level === 'critical' || level === 'error') dot.classList.add('critical');
 }
 
 /** Update the phase label in status bar. */

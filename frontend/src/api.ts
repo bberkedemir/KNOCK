@@ -8,6 +8,7 @@ export interface ChatResponse {
   surrendered: boolean;
   surrender_type: string | null;
   current_image: string;
+  pose: string;
 }
 
 export interface InpaintStatus {
@@ -42,6 +43,18 @@ export async function checkInpaintStatus(
 
 export function getImageUrl(filename: string): string {
   return `${API_BASE}/image/${filename}`;
+}
+
+export function getPoseUrl(pose: string, phase: number = 1): string {
+  const valid = ['angry', 'idle', 'sad', 'tense', 'surrender'];
+  let p = valid.includes(pose) ? pose : 'idle';
+  
+  if (phase >= 2) {
+    const unarmedValid = ['angry', 'idle', 'tense', 'sad'];
+    if (!unarmedValid.includes(p)) p = 'idle';
+    return getImageUrl(`poses/soldier_unarmed_${p}.png`);
+  }
+  return getImageUrl(`poses/soldier_${p}.png`);
 }
 
 export async function triggerDebugInpaint(

@@ -89,6 +89,23 @@ export function appendSeparator(): void {
   appendAndScroll(line);
 }
 
+/** Add a clickable button to the terminal. */
+export function appendRetryButton(label: string, onClick: () => void): void {
+  const line = createLine('system');
+  const btn = document.createElement('button');
+  btn.className = 'debug-btn'; // Re-use existing button style
+  btn.style.marginTop = '10px';
+  btn.style.display = 'inline-block';
+  btn.textContent = label;
+  btn.onclick = () => {
+    btn.disabled = true;
+    btn.textContent = 'PROCESSING...';
+    onClick();
+  };
+  line.appendChild(btn);
+  appendAndScroll(line);
+}
+
 // Helpers
 function createLine(className: string): HTMLElement {
   const el = document.createElement('div');
