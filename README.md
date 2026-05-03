@@ -1,175 +1,71 @@
-<div align="center">
-  <!-- Banner Placeholder -->
-  <img src="screenshots/banner.png" alt="Project Banner" width="100%">
+Putting Down the Iron: An Artist’s Manifesto
+Project: KNOCK — Design Your Door
+Course: CSE 358 — Introduction to Artificial Intelligence
 
-  # Knockin' on Heaven's Door: The Surrender of Sergeant Mac
-  
-  *An interactive AI digital artwork exploring the psychological threshold of war, trauma, and peace.*
-  
-  **Course:** CSE 358 - Introduction to Artificial Intelligence
-</div>
+I. Why This Medium?
+When I first started thinking about Knockin’ on Heaven’s Door, I felt that a normal image or video would not be enough. The song is simple, but the feeling behind it is not simple. It is not only about death. It is about being tired, giving up a role, and reaching a point where a person cannot continue the same way anymore.
+That is why I chose an interactive medium. I wanted the viewer to do more than just watch. I wanted them to enter the situation and become part of it. My project is built around a digital conversation with a fictional soldier, Sergeant James “Mac” McAllister. He is placed in a dark Vietnam War outpost in 1973. He is tired, defensive, and emotionally stuck. The user’s aim is not to defeat him. The aim is to reach him through conversation.
+This was important for me because the song itself feels like a conversation. The speaker says, “Mama, take this badge off of me,” and “I can’t use it anymore.” These lines sound simple, but they carry a heavy meaning. The person in the song is not trying to look strong anymore. He is asking to be released from something that has become too much to carry.
+I wanted my artwork to create that same feeling. The user stands in front of a person who is close to breaking. The only way forward is not violence, but empathy. The user has to choose their words carefully. They have to decide whether to pressure him, comfort him, or understand him.
+The medium also connects with the technical side of my project. I used AI dialogue, computer vision, and image processing. These tools are not only there to show technical skill. They are part of the meaning of the work.
+For example, the rifle in the soldier’s hands is not just a weapon. It is a symbol of trauma, duty, and fear. Using object detection, the system can identify the weapon. Then, through inpainting, the weapon can be removed from the image. This is not just a visual effect. It is the central action of the artwork. The user helps the soldier put down the rifle, and the system makes that change visible.
+This is why the medium matters. A painting could show a soldier holding a gun. A video could show him dropping it. But an interactive AI project allows the viewer to take part in the emotional process. The user does not just see surrender. They help create the conditions for it.
+The visual style also supports this idea. The project uses a gloomy jungle, mud, fog, a military outpost, and a retro computer terminal. I wanted it to feel like an old memory or a forgotten machine from 1973. The CRT-style screen and film grain make the artwork feel distant, but still emotionally close. It is like speaking to a ghost through technology.
+In the end, I chose this medium because the song is about a threshold. It is about the moment before someone lets go. An interactive AI experience allowed me to turn that moment into something the viewer can feel, not only understand.
 
-<br />
 
-## 📖 Project Description & Artistic Statement
+II. What Caught Me?
+The part of Knockin’ on Heaven’s Door that caught me most is the feeling of exhaustion. The song does not sound like a hero’s story. It sounds like someone who has reached the end of his strength. He does not want to fight anymore. He does not want to carry the badge or the gun anymore. He just wants release.
+The line “I can’t shoot them anymore” is especially powerful for me. It is short and direct. There is no big explanation. But it says so much. It shows a person who has finally accepted that continuing would destroy him.
+Bob Dylan’s original version is calm and sad, but I also connect strongly with the Guns N’ Roses version. That version feels louder and more desperate. The guitar sound makes the sadness feel almost physical. It is not peaceful sadness. It is painful, heavy, and full of tension.
+This influenced how I imagined Sergeant Mac. I did not want him to be only a sad soldier. I wanted him to feel like someone full of pressure. He is angry, tired, proud, afraid, and broken at the same time. He is not a clean symbol. He is a person who has been carrying too much for too long.
+The Vietnam War setting also caught me because it was a time of deep confusion and loss of belief. By 1973, the war had already created many wounds. Many people were questioning the meaning of it. The idea of duty had become darker. The “badge” in the song can represent authority, identity, and responsibility. But when the badge becomes too heavy, it no longer gives strength. It becomes a burden.
+In my project, Mac’s badge and rifle represent this burden. The badge shows his role. The rifle shows the violence and fear he cannot leave behind. Together, they are part of his identity. But they are also the things trapping him.
+This is what I find most moving in the song: the courage to stop. In many situations, people are told to keep going, keep fighting, and stay strong. But sometimes real strength is the ability to say, “I cannot do this anymore.” Sometimes peace begins when we stop pretending that we are not tired.
+Dylan’s song shows surrender not as weakness, but as honesty. The person in the song is not simply giving up. He is recognizing the truth. He cannot continue with the gun, the badge, and the violence. He needs to let them go.
+That idea became the emotional center of my project. The goal is not to make the soldier stronger in the usual way. The goal is to help him become human again. He has to put down the thing that has protected him but also destroyed him.
+The song also stays with me because it does not fully open the door. It only shows someone knocking. That is important. The song is not about arriving safely somewhere. It is about standing at the edge, unsure of what comes next. My project also lives in that moment. Mac is not fully saved. He is standing at a threshold. The user’s empathy only helps him take the first step.
 
-Inspired by Bob Dylan's iconic song *"Knockin' on Heaven's Door"*, this project serves as a deeply interactive, AI-driven digital artwork. It places the user face-to-face with Sergeant James "Mac" McAllister, a profoundly traumatized U.S. Army soldier stationed at Firebase Delta during the twilight of the Vietnam War in 1973. 
 
-The core interaction transcends traditional gaming; it is a psychological and empathetic puzzle. Mac hides behind a thick wall of military discipline and hostility. The user's goal is to converse with him via natural language, demonstrating profound empathy and philosophical wisdom to convince him to emotionally break down. 
 
-The narrative unfolds in two distinct phases of surrender:
-1. **The Weapon:** Persuading Mac to drop his M16 rifle—the physical tool of war that he believes keeps him alive.
-2. **The Identity:** Convincing the unarmed, vulnerable soldier to unpin and surrender his sheriff badge—his last remaining symbol of authority and identity.
+III. AI as What?
+In this project, AI was not only a tool. It was also a collaborator and a mirror.
+It was a tool because I used it for clear technical purposes: dialogue generation, object detection, and image editing. These parts helped me build the experience. Without AI, the project would have been much more fixed. The conversation would feel scripted, and the visual transformation would be less meaningful.
+But AI was more than that. It also became a collaborator because it helped shape the character of Mac. I had to design how he speaks, what he avoids, what he fears, and how he reacts to the user. I did not just write normal dialogue. I created rules for a wounded character.
+For example, Mac should not trust the user immediately. He should hide behind military language. He should sound disciplined, but also tired. He should slowly open up only if the user speaks with patience and care. This made the process feel like building a mind, not just writing a script.
+When I tested the dialogue, the AI sometimes gave responses that surprised me. Sometimes Mac sounded colder than I expected. Sometimes he suddenly became emotional. These moments made the character feel more alive. Of course, the AI is not actually suffering. But it can reflect human emotional patterns in a powerful way.
+That is why I also see AI as a mirror. The system reflects the user’s attitude. If the user is aggressive, Mac becomes defensive. If the user is kind, he slowly becomes more open. In this way, the project is not only about Mac. It is also about the user.
+The artwork asks: how do you speak to someone who is hurt? Do you try to control them? Do you become impatient? Or do you listen?
+This was important to me because many games reward force. They ask the player to attack, win, or dominate. In my project, progress comes from empathy. The user must understand that Mac is not an enemy. He is someone standing at the edge of collapse.
+AI also worked as an eraser in the visual part of the project. When the rifle is removed through inpainting, the AI fills the empty space. This creates the image of a world where the weapon is no longer there. I found this very meaningful. The AI does not only remove an object; it helps imagine peace.
+Still, I do not think AI made the artwork by itself. The main ideas, emotions, and choices came from me. AI gave me possibilities, but I had to guide them. I had to decide what the project was really about. Without human intention, AI can easily become just a visual trick or a technical show.
+For me, the most honest way to describe AI in this project is this: it was a strange partner. It helped me build a character, test empathy, and show transformation. It did not replace my role as the artist. Instead, it helped me express something that would have been harder to create alone.
 
----
 
-## 🏗️ Technical Architecture Overview
 
-The project bridges classic web development with state-of-the-art AI pipelines to create a seamless, real-time interactive cinematic experience.
+IV. My Door
+For me, “knocking on heaven’s door” does not only mean physical death. It means standing in front of a major change. It is the moment when one part of life is ending, but the next part has not fully started yet.
+In my own life, this phrase makes me think about migration and the possibility of building a future in Australia. This is not only about moving to another country. It is also about leaving a familiar life behind. It means entering a new culture, a new education or work environment, and a completely different daily life.
+That kind of change is exciting, but also frightening. Australia feels far away, not only as a place on the map, but also as a new chapter. It means adapting to a different rhythm of life, speaking English more naturally every day, meeting new people, and learning how to stand on my own in a place that does not immediately feel like home.
+In this sense, my “door” is the door between comfort and growth. Staying where everything is familiar can feel safe. But sometimes safety can also become a kind of trap. To move forward, I have to let go of some old fears and habits.
+The badge and the gun in the song are not literal for me, but they still mean something personal. They represent the things we carry to protect ourselves. These things can be pride, fear, routine, or the identity we are used to. At one point, they may help us survive. But later, they can stop us from changing.
+Like Mac, I also have to ask what I am holding too tightly. What do I need to put down before I can move forward? Maybe it is the fear of failure. Maybe it is the fear of not belonging. Maybe it is the comfort of staying the same.
+This is why Mac’s story became personal for me. He is standing in the jungle, unable to move forward because the rifle still connects him to his past. I am not in his situation, of course, but I understand the feeling of standing before an unknown future. I understand the fear of crossing a threshold.
+The phrase “knocking on heaven’s door” also makes me think about farewells. Every big change includes some kind of goodbye. Even if the future is hopeful, something is still left behind. A version of yourself ends. A place becomes memory. A routine disappears.
+That is why the door is both beautiful and scary. It can mean peace, but it also means loss. It can mean freedom, but it also asks for courage.
+In my project, Mac does not become free because someone forces him to change. He becomes free only when he is ready to put the rifle down. I think this is true for real life too. No one can cross the door for us. Other people can support us, but the final step is ours.
+KNOCK is about that moment before the step. It is about exhaustion, honesty, and release. It is about realizing that the thing we carry may be the same thing that prevents us from moving forward.
+For Sergeant Mac, peace begins when the rifle leaves his hands. For me, peace begins when I accept that the next chapter of my life may require vulnerability. Moving toward Australia means accepting distance, uncertainty, and the challenge of starting again. I may need to let go of old certainties before I can enter something new.
+To knock on heaven’s door is not always to die. Sometimes it is to change. Sometimes it is to say goodbye. Sometimes it is to stand before the unknown and still choose to move forward.
 
-| Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend** | Vite + TypeScript | Manages the retro CRT terminal UI, dynamic CSS layered sprites, glitch animations, and state transitions. |
-| **Backend** | FastAPI (Python) | Orchestrates the session state, API routing, LLM interactions, and handles the asynchronous heavy lifting for computer vision tasks. |
-| **LLM Engine** | LangChain & Groq (Llama 3.3) | Drives the conversational logic and emotional state machine. |
-| **Object Detection** | YOLO-World | Open-vocabulary detection for real-time target isolation. |
-| **Generative AI** | DALL-E 2 & DALL-E 3 | DALL-E 3 for base visual assets; DALL-E 2 for real-time inpainting. |
-| **Local Inpainting** | Diffusers (runwayml) | High-performance local fallback for generative erasure. |
-| **Audio & Music** | Suno AI & Bob Dylan | Atmospheric background loop and cinematic final track. |
+V. Attribution and Transparency
+Since this project uses artificial intelligence as part of both its technical system and creative process, I believe it is important to be clear about which tools, models, and external assets were used. AI was not hidden in this project; it was part of the concept, the production process, and the final interaction.
+The main language model used in the project was Llama 3.3, accessed through the Groq Cloud API. This model was used to generate the conversational responses of Sergeant James “Mac” McAllister. It helped create the feeling of speaking with a wounded, defensive, and emotionally complex character.
+For the visual detection system, I used YOLO-World, an open-vocabulary object detection model based on vision transformer methods. This was used to identify important visual objects, especially the rifle and badge. In the context of the artwork, this detection was not only technical. It helped support the symbolic meaning of the project by locating the weapon as the object that Mac must eventually let go of.
+For generative image editing and inpainting, I used the OpenAI DALL·E 2 API and Stable Diffusion Inpainting through Hugging Face Diffusers. These tools were used to remove or alter visual elements, especially during the process of representing the soldier without his rifle and badge. This supported the artwork’s central idea of disarmament and release.
+For base asset generation, I used OpenAI DALL·E 3. It was used to generate the soldier poses and the background environment, including the Vietnam War-inspired jungle, military outpost, and cinematic visual style.
+The background ambient loop was generated using Suno AI. The cinematic ending track is “Knockin’ on Heaven’s Door” by Bob Dylan, released in 1973 for the soundtrack of Pat Garrett and Billy the Kid. The project is also narratively inspired by the themes and lyrics of Dylan’s song, especially its ideas of surrender, farewell, violence, exhaustion, and standing at a final threshold.
+All borrowed or externally generated assets are used as part of an academic and artistic project. The project does not claim ownership over Bob Dylan’s song or its lyrics. Instead, the song is used as the main source of inspiration and interpretation. The AI-generated images, music elements, and model outputs were shaped, selected, edited, and organized by me in order to create the final experience.
 
----
 
-## 🧠 AI Techniques Used
-
-This project harmonizes three distinct branches of Artificial Intelligence to create a cohesive interactive experience:
-
-### 1. Large Language Models (LLMs) & Prompt Engineering
-The conversational engine utilizes **Llama 3.3** via the Groq API. Extensive prompt engineering was employed to construct Mac's persona, enforcing strict behavioral logic. The LLM operates as a **JSON State Machine**, outputting its emotional state (e.g., `angry`, `sad`, `surrender`, `idle`, `tense`) alongside its conversational text. This parsed state directly dictates the frontend sprite rendering, ensuring Mac's visual body language matches his generated dialogue.
-
-### 2. Computer Vision (Zero-Shot Object Detection)
-When a surrender condition is met, the system utilizes **YOLO-World**, an open-vocabulary object detection model. Unlike traditional models constrained to fixed classes, YOLO-World dynamically scans the composite scene to generate precise bounding boxes around specific targets (like "M16 rifle" or "badge"), adapting to the soldier's current pose and scale.
-
-### 3. Generative AI (Image Inpainting)
-Once the computer vision pipeline identifies the object, the **OpenAI DALL-E 2** inpainting model (with an optional local diffusers fallback) takes over. Using dynamically calculated, soft-edged masks and heavily tailored negative/positive prompts, the generative AI seamlessly erases the weapon or badge. It reconstructs the obscured uniform and jungle background, pushing the flattened, altered image back to the frontend to complete the visual surrender.
-
----
-
-## 📜 Attribution & Transparency
-
-In accordance with project transparency requirements, the following AI tools, models, and external assets have been utilized:
-
-### 🤖 AI Models & APIs
-- **Large Language Model:** Llama 3.3 (via **Groq Cloud API**)
-- **Object Detection:** **YOLO-World** (Open-Vocabulary Vision Transformer)
-- **Generative Inpainting:** **OpenAI DALL-E 2** API
-- **Local Generative Engine:** **Stable Diffusion Inpainting** via Hugging Face **Diffusers**
-- **Base Asset Generation:** **OpenAI DALL-E 3** (Used for generating the soldier poses and background environment)
-
-### 🎨 Creative Assets & Attribution
-- **Background Music (Ambient Loop):** Generated via **Suno AI**.
-- **Cinematic Ending Track:** *"Knockin' on Heaven's Door"* by **Bob Dylan** (1973).
-- **Narrative Inspiration:** Directly inspired by the themes and lyrics of Bob Dylan's 1973 soundtrack for *Pat Garrett and Billy the Kid*.
-
----
-
-## ⚙️ Installation and Setup Instructions
-
-Follow these steps to run the interactive experience locally.
-
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/bberkedemir/KNOCK.git
-cd KNOCK
-```
-
-### 2. Backend Setup (Python)
-Create and activate a virtual environment:
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install the required Python dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-Create a `.env` file in the root directory and add your API keys and configuration:
-```env
-# API Keys
-GROQ_API_KEY=your_groq_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Inpainting Configuration
-INPAINT_MODE=api              # Set to 'api' to use OpenAI, or 'local' to use Diffusers
-ALLOW_LOCAL_INPAINT=false     # Set to true to allow fallback to local GPU if API fails
-USE_FREE_MODELS=false         # Set to true to bypass OpenAI entirely (requires ALLOW_LOCAL_INPAINT=true)
-```
-
-### 3. Frontend Setup (Node.js)
-Navigate to the frontend directory and install dependencies:
-```bash
-cd frontend
-npm install
-```
-
----
-
-## 🚀 Usage
-
-To experience the artwork, you must run both the backend server and the frontend development server simultaneously.
-
-**1. Start the Backend (FastAPI)**
-Open a terminal in the root directory and run:
-```bash
-python app.py
-```
-*The backend will initialize on `http://localhost:8000`.*
-
-**2. Start the Frontend (Vite)**
-Open a second terminal in the `frontend` directory and run:
-```bash
-npm run dev
-```
-*The frontend will be available at `http://localhost:5173`. Open this URL in your browser to begin the interaction.*
-
-**Interaction Tips:**
-- Type your responses in the retro terminal interface.
-- Be patient; Mac is hostile and takes time to trust you.
-
----
-
-## 🖼️ Example Outputs
-
-### 1. Retro CRT Terminal Interface
-![Terminal UI Placeholder](screenshots/terminal-ui.png)
-> *The frontend interface featuring a CRT scanline overlay, dynamic typing effects, and system warning logs during conversational breakthroughs.*
-
-### 2. Phase 1: Hostility & Resistance
-![Angry Pose Placeholder](screenshots/angry.png)
-> *Mac refuses to drop his weapon, reacting aggressively to direct orders. The LLM dictates an 'angry' pose.*
-
-### 3. YOLO-World Target Isolation
-![YOLO Mask Placeholder](screenshots/mask.png)
-> *A visualization of the computer vision pipeline. YOLO-World scans the composite scene and generates a high-contrast segmentation mask strictly around the M16 rifle.*
-
-### 4. Cinematic Glitch Transition
-![Glitch Effect Placeholder](screenshots/glitchvid.gif)
-> *Upon surrender, the frontend triggers a dramatic CSS glitch sequence, masking the backend processing time while the inpainting API rewrites the image.*
-
-### 5. Phase 2: Vulnerability
-![Sad Pose Placeholder](screenshots/unarmed_sad.png)
-> *Mac's emotional wall cracks. The weapon is now visually absent, and the AI dynamically swaps the sprite to reflect his sorrow.*
-
-### 6. Phase 3: Complete Identity Surrender
-![Final Result Placeholder](screenshots/ending.gif)
-> *The final stage. The badge is successfully erased, seamlessly reconstructing the fabric texture of his uniform.*
+The door does not open by force. It opens when we are ready to put down what we can no longer carry.
