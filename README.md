@@ -31,8 +31,11 @@ The project bridges classic web development with state-of-the-art AI pipelines t
 | :--- | :--- | :--- |
 | **Frontend** | Vite + TypeScript | Manages the retro CRT terminal UI, dynamic CSS layered sprites, glitch animations, and state transitions. |
 | **Backend** | FastAPI (Python) | Orchestrates the session state, API routing, LLM interactions, and handles the asynchronous heavy lifting for computer vision tasks. |
-| **LLM Engine** | LangChain & Groq (Llama 3.3) | Drives the conversational logic, emotional state tracking, and output parsing using strict JSON validation. |
-| **Generative AI** | DALL-E 2 & diffusers | Handles generative image inpainting to physically remove objects from the screen in real-time. |
+| **LLM Engine** | LangChain & Groq (Llama 3.3) | Drives the conversational logic and emotional state machine. |
+| **Object Detection** | YOLO-World | Open-vocabulary detection for real-time target isolation. |
+| **Generative AI** | DALL-E 2 & DALL-E 3 | DALL-E 3 for base visual assets; DALL-E 2 for real-time inpainting. |
+| **Local Inpainting** | Diffusers (runwayml) | High-performance local fallback for generative erasure. |
+| **Audio & Music** | Suno AI & Bob Dylan | Atmospheric background loop and cinematic final track. |
 
 ---
 
@@ -48,6 +51,24 @@ When a surrender condition is met, the system utilizes **YOLO-World**, an open-v
 
 ### 3. Generative AI (Image Inpainting)
 Once the computer vision pipeline identifies the object, the **OpenAI DALL-E 2** inpainting model (with an optional local diffusers fallback) takes over. Using dynamically calculated, soft-edged masks and heavily tailored negative/positive prompts, the generative AI seamlessly erases the weapon or badge. It reconstructs the obscured uniform and jungle background, pushing the flattened, altered image back to the frontend to complete the visual surrender.
+
+---
+
+## 📜 Attribution & Transparency
+
+In accordance with project transparency requirements, the following AI tools, models, and external assets have been utilized:
+
+### 🤖 AI Models & APIs
+- **Large Language Model:** Llama 3.3 (via **Groq Cloud API**)
+- **Object Detection:** **YOLO-World** (Open-Vocabulary Vision Transformer)
+- **Generative Inpainting:** **OpenAI DALL-E 2** API
+- **Local Generative Engine:** **Stable Diffusion Inpainting** via Hugging Face **Diffusers**
+- **Base Asset Generation:** **OpenAI DALL-E 3** (Used for generating the soldier poses and background environment)
+
+### 🎨 Creative Assets & Attribution
+- **Background Music (Ambient Loop):** Generated via **Suno AI**.
+- **Cinematic Ending Track:** *"Knockin' on Heaven's Door"* by **Bob Dylan** (1973).
+- **Narrative Inspiration:** Directly inspired by the themes and lyrics of Bob Dylan's 1973 soundtrack for *Pat Garrett and Billy the Kid*.
 
 ---
 
