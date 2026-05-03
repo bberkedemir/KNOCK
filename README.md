@@ -1,6 +1,6 @@
 <div align="center">
   <!-- Banner Placeholder -->
-  <img src="https://via.placeholder.com/800x300/1a4a1a/33ff33?text=Knockin'+on+Heaven's+Door" alt="Project Banner" width="100%">
+  <img src="screenshots/banner.png" alt="Project Banner" width="100%">
 
   # Knockin' on Heaven's Door: The Surrender of Sergeant Mac
   
