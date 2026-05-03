@@ -82,8 +82,8 @@ Follow these steps to run the interactive experience locally.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/knockin-on-heavens-door.git
-cd knockin-on-heavens-door
+git clone https://github.com/bberkedemir/KNOCK.git
+cd KNOCK
 ```
 
 ### 2. Backend Setup (Python)
@@ -167,9 +167,9 @@ npm run dev
 > *Upon surrender, the frontend triggers a dramatic CSS glitch sequence, masking the backend processing time while the inpainting API rewrites the image.*
 
 ### 5. Phase 2: Vulnerability
-![Sad Pose Placeholder](screenshots/sad.png)
+![Sad Pose Placeholder](screenshots/unarmed_sad.png)
 > *Mac's emotional wall cracks. The weapon is now visually absent, and the AI dynamically swaps the sprite to reflect his sorrow.*
 
-### 6. Phase 3: Complete Identity Surrender (Final Inpainting)
+### 6. Phase 3: Complete Identity Surrender
 ![Final Result Placeholder](screenshots/ending.gif)
-> *The final generative AI output. The badge is successfully erased, seamlessly reconstructing the fabric texture of his uniform.*
+> *The final stage. The badge is successfully erased, seamlessly reconstructing the fabric texture of his uniform.*
