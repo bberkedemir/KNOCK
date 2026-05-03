@@ -222,6 +222,13 @@ async def get_session_state(session_id: str):
             "badge_surrendered": s["badge_surrendered"], "current_image": s["current_image"],
             "inpaint_status": s["inpaint_status"], "message_count": len(s["history"])}
 
+@app.get("/api/audio/{filename}")
+async def get_audio(filename: str):
+    path = STATIC_DIR / "audio" / filename
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Audio not found")
+    return FileResponse(path)
+
 FRONTEND_DIST = Path(__file__).parent / "frontend" / "dist"
 if FRONTEND_DIST.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")

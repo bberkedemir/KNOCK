@@ -109,6 +109,9 @@ export async function transitionToImage(filename: string): Promise<void> {
 
 /** Final system shutdown effect. */
 export async function triggerShutdown(): Promise<void> {
+  // Start the song as soon as shutdown begins
+  playEndingSong();
+
   await showDramaticOverlay('SYSTEM SHUTDOWN INITIATED', 2000);
   await delay(500);
   await showDramaticOverlay('KNOCK... KNOCK... KNOCKIN\'...', 3000);
@@ -145,6 +148,29 @@ export async function triggerShutdown(): Promise<void> {
     await delay(100);
     quote.style.opacity = '1';
   }
+}
+
+function playEndingSong() {
+  const audio = new Audio('/api/audio/knockin.mp3');
+  audio.volume = 0; // Start at zero for fade-in
+  
+  audio.play().then(() => {
+    // Fade in logic: increase volume to 0.5 over 5 seconds
+    const targetVolume = 0.5;
+    const fadeDuration = 5000; // 5 seconds
+    const intervalTime = 50;   // Update every 50ms
+    const step = targetVolume / (fadeDuration / intervalTime);
+
+    const fadeInterval = setInterval(() => {
+      if (audio.volume < targetVolume) {
+        audio.volume = Math.min(targetVolume, audio.volume + step);
+      } else {
+        clearInterval(fadeInterval);
+      }
+    }, intervalTime);
+  }).catch(err => {
+    console.warn("Autoplay blocked or audio missing:", err);
+  });
 }
 
 /** Update status bar indicator. */

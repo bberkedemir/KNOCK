@@ -130,25 +130,25 @@ npm run dev
 ## 🖼️ Example Outputs
 
 ### 1. Retro CRT Terminal Interface
-![Terminal UI Placeholder](https://via.placeholder.com/600x400/000000/33ff33?text=Terminal+UI+&+Dialogue)
+![Terminal UI Placeholder](screenshots/terminal-ui.png)
 > *The frontend interface featuring a CRT scanline overlay, dynamic typing effects, and system warning logs during conversational breakthroughs.*
 
 ### 2. Phase 1: Hostility & Resistance
-![Angry Pose Placeholder](https://via.placeholder.com/600x400/1a4a1a/ff3333?text=Phase+1:+Angry/Tense)
+![Angry Pose Placeholder](screenshots/angry.png)
 > *Mac refuses to drop his weapon, reacting aggressively to direct orders. The LLM dictates an 'angry' pose.*
 
 ### 3. YOLO-World Target Isolation
-![YOLO Mask Placeholder](https://via.placeholder.com/600x400/000000/ffffff?text=YOLO-World+Generated+Mask)
+![YOLO Mask Placeholder](screenshots/mask.png)
 > *A visualization of the computer vision pipeline. YOLO-World scans the composite scene and generates a high-contrast segmentation mask strictly around the M16 rifle.*
 
 ### 4. Cinematic Glitch Transition
-![Glitch Effect Placeholder](https://via.placeholder.com/600x400/1a4a1a/ff00ff?text=Cinematic+Glitch+Transition)
+![Glitch Effect Placeholder](screenshots/glitchvid.gif)
 > *Upon surrender, the frontend triggers a dramatic CSS glitch sequence, masking the backend processing time while the inpainting API rewrites the image.*
 
 ### 5. Phase 2: Vulnerability
-![Sad Pose Placeholder](https://via.placeholder.com/600x400/1a4a1a/33ff33?text=Phase+2:+Sad/Vulnerable)
+![Sad Pose Placeholder](screenshots/sad.png)
 > *Mac's emotional wall cracks. The weapon is now visually absent, and the AI dynamically swaps the sprite to reflect his sorrow.*
 
 ### 6. Phase 3: Complete Identity Surrender (Final Inpainting)
-![Final Result Placeholder](https://via.placeholder.com/600x400/1a4a1a/ffffff?text=Phase+3:+Weapon+&+Badge+Removed)
+![Final Result Placeholder](screenshots/ending.gif)
 > *The final generative AI output. The badge is successfully erased, seamlessly reconstructing the fabric texture of his uniform.*
