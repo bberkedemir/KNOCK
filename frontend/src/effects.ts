@@ -109,6 +109,10 @@ export async function transitionToImage(filename: string): Promise<void> {
 
 /** Final system shutdown effect. */
 export async function triggerShutdown(): Promise<void> {
+  // Stop background music and start the ending song
+  stopBackgroundMusic();
+  playEndingSong();
+
   await showDramaticOverlay('SYSTEM SHUTDOWN INITIATED', 2000);
   await delay(500);
   await showDramaticOverlay('KNOCK... KNOCK... KNOCKIN\'...', 3000);
@@ -145,6 +149,67 @@ export async function triggerShutdown(): Promise<void> {
     await delay(100);
     quote.style.opacity = '1';
   }
+}
+
+let bgMusic: HTMLAudioElement | null = null;
+
+/** Start the ambient background music in a loop. */
+export function playBackgroundMusic(): void {
+  if (bgMusic) return;
+  bgMusic = new Audio('/api/audio/acoustic.mp3');
+  bgMusic.loop = true;
+  bgMusic.volume = 0.2; // Subtle background level
+  
+  bgMusic.play().catch(() => {
+    // If autoplay is blocked, wait for the first user interaction
+    const startOnInteraction = () => {
+      bgMusic?.play();
+      document.removeEventListener('click', startOnInteraction);
+      document.removeEventListener('keydown', startOnInteraction);
+    };
+    document.addEventListener('click', startOnInteraction);
+    document.addEventListener('keydown', startOnInteraction);
+  });
+}
+
+/** Fade out and stop the background music. */
+export function stopBackgroundMusic(): void {
+  if (!bgMusic) return;
+  
+  const currentBg = bgMusic;
+  bgMusic = null; // Prevent multiple calls
+
+  const fadeOut = setInterval(() => {
+    if (currentBg.volume > 0.02) {
+      currentBg.volume -= 0.02;
+    } else {
+      clearInterval(fadeOut);
+      currentBg.pause();
+    }
+  }, 50);
+}
+
+function playEndingSong() {
+  const endingAudio = new Audio('/api/audio/knockin.mp3');
+  endingAudio.volume = 0; // Start at zero for fade-in
+  
+  endingAudio.play().then(() => {
+    // Fade in logic: increase volume to 0.5 over 5 seconds
+    const targetVolume = 0.5;
+    const fadeDuration = 5000; // 5 seconds
+    const intervalTime = 50;   // Update every 50ms
+    const step = targetVolume / (fadeDuration / intervalTime);
+
+    const fadeInterval = setInterval(() => {
+      if (endingAudio.volume < targetVolume) {
+        endingAudio.volume = Math.min(targetVolume, endingAudio.volume + step);
+      } else {
+        clearInterval(fadeInterval);
+      }
+    }, intervalTime);
+  }).catch(err => {
+    console.warn("Autoplay blocked or audio missing:", err);
+  });
 }
 
 /** Update status bar indicator. */

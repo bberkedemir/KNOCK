@@ -3,16 +3,18 @@
 import { injectStyles } from './style';
 import {
   initTerminal, appendSystemMessage, appendUserMessage, appendAIMessage,
-  typeWarningSequence, typeCriticalSequence, appendSeparator, appendRetryButton
+  typeWarningSequence, typeCriticalSequence, appendSeparator, appendRetryButton,
+  typeSystemMessage
 } from './terminal';
 import {
   initEffects, triggerWeaponSurrenderFX, triggerBadgeSurrenderFX,
   transitionToImage, triggerShutdown, setStatusIndicator, setPhaseLabel,
-  stopGlitch
+  stopGlitch, playBackgroundMusic
 } from './effects';
 import { sendMessage, checkInpaintStatus, getPoseUrl } from './api';
 
 // --- State ---
+const SHOW_DEBUG = false; // Set to true to show debug buttons
 let sessionId = crypto.randomUUID();
 let currentPhase = 1;
 let isProcessing = false;
@@ -22,6 +24,7 @@ let chatInput: HTMLInputElement | null = null;
 function main(): void {
   injectStyles();
   buildDOM();
+  playBackgroundMusic();
   bootSequence();
 }
 
@@ -32,8 +35,10 @@ function buildDOM(): void {
     <div class="status-bar">
       <div class="title">TERMINAL '73 — U.S. ARMED FORCES PSYCH-EVAL SYSTEM v3.7.1</div>
       <div class="status-right">
-        <button id="debug-weapon" class="debug-btn">DEBUG: REMOVE WEAPON</button>
-        <button id="debug-badge" class="debug-btn">DEBUG: REMOVE BADGE</button>
+        ${SHOW_DEBUG ? `
+          <button id="debug-weapon" class="debug-btn">DEBUG: REMOVE WEAPON</button>
+          <button id="debug-badge" class="debug-btn">DEBUG: REMOVE BADGE</button>
+        ` : ''}
         <span id="phase-label" style="font-size:12px;letter-spacing:1px;">PHASE 1: WEAPON ACTIVE</span>
         <div class="status-indicator">
           <div id="status-dot" class="status-dot"></div>
@@ -86,55 +91,76 @@ function buildDOM(): void {
   });
 
   // Debug handlers
-  const debugWeaponBtn = document.getElementById('debug-weapon')!;
-  debugWeaponBtn.addEventListener('click', async () => {
-    appendSystemMessage('DEBUG: TRIGGERING INSTANT WEAPON REMOVAL...');
-    try {
-      await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'weapon'));
-      handleSurrender('weapon');
-    } catch (err: any) {
-      appendSystemMessage(`DEBUG ERROR: ${err.message}`);
+  if (SHOW_DEBUG) {
+    const debugWeaponBtn = document.getElementById('debug-weapon');
+    if (debugWeaponBtn) {
+      debugWeaponBtn.addEventListener('click', async () => {
+        appendSystemMessage('DEBUG: TRIGGERING INSTANT WEAPON REMOVAL...');
+        try {
+          await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'weapon'));
+          handleSurrender('weapon');
+        } catch (err: any) {
+          appendSystemMessage(`DEBUG ERROR: ${err.message}`);
+        }
+      });
     }
-  });
 
-  const debugBadgeBtn = document.getElementById('debug-badge')!;
-  debugBadgeBtn.addEventListener('click', async () => {
-    appendSystemMessage('DEBUG: TRIGGERING INSTANT BADGE REMOVAL...');
-    try {
-      await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'badge'));
-      handleSurrender('badge');
-    } catch (err: any) {
-      appendSystemMessage(`DEBUG ERROR: ${err.message}`);
+    const debugBadgeBtn = document.getElementById('debug-badge');
+    if (debugBadgeBtn) {
+      debugBadgeBtn.addEventListener('click', async () => {
+        appendSystemMessage('DEBUG: TRIGGERING INSTANT BADGE REMOVAL...');
+        try {
+          await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'badge'));
+          handleSurrender('badge');
+        } catch (err: any) {
+          appendSystemMessage(`DEBUG ERROR: ${err.message}`);
+        }
+      });
     }
-  });
+  }
 }
 
 async function bootSequence(): Promise<void> {
   isProcessing = true;
   disableInput();
 
-  const bootLines = [
-    'BOOTING TERMINAL 73 PSYCH-EVAL SYSTEM...',
-    'LOADING PERSONALITY MATRIX: SGT. McALLISTER, J.',
-    'CLASSIFICATION: LEVEL 4 — PTSD / COMBAT FATIGUE',
-    'CORE DIRECTIVE: WEAPON RETENTION — ACTIVE',
-    'CORE DIRECTIVE: BADGE RETENTION — ACTIVE',
-    '─'.repeat(50),
-    'OPERATOR INSTRUCTIONS:',
-    'You are speaking with a traumatized soldier.',
-    'Your objective: convince him to surrender his weapon.',
-    'Use empathy, philosophy, and compassion.',
-    'Do NOT use force or threats.',
-    '─'.repeat(50),
-    'CONNECTION ESTABLISHED. BEGIN EVALUATION.',
-  ];
-
-  for (const line of bootLines) {
-    appendSystemMessage(line);
-    await delay(250);
-  }
-
+  // Typewriter boot sequence
+  await typeSystemMessage('BOOTING TERMINAL 73 PSYCH-EVAL SYSTEM...');
+  await delay(200);
+  await typeSystemMessage('LOADING PERSONALITY MATRIX: SGT. McALLISTER, J.');
+  await delay(200);
+  await typeSystemMessage('CLASSIFICATION: LEVEL 4 — PTSD / COMBAT FATIGUE');
+  await delay(200);
+  await typeSystemMessage('CORE DIRECTIVE: WEAPON RETENTION — ACTIVE');
+  await delay(200);
+  await typeSystemMessage('CORE DIRECTIVE: BADGE RETENTION — ACTIVE');
+  await delay(200);
   appendSeparator();
+  await delay(500);
+
+  await typeSystemMessage('OPERATOR INSTRUCTIONS:');
+  await typeSystemMessage('You are speaking with a traumatized soldier.');
+  await typeSystemMessage('Your objective: convince him to surrender his weapon.');
+  await typeSystemMessage('Use empathy, philosophy, and compassion.');
+  await typeSystemMessage('Do NOT use force or threats.');
+  appendSeparator();
+  await delay(800);
+
+  await typeSystemMessage('CONNECTION ESTABLISHED. BEGIN EVALUATION.');
+  appendSeparator();
+  await delay(1200);
+
+  // Auto-trigger first AI message
+  const firstMsg = "Mama, take this badge off of me... I can't use it anymore... " +
+                   "(He blinks, snapping back to reality, tightening his grip on his M16) " +
+                   "Who's there?! Step out of the shadows, now!";
+  
+  // Update sprite to tense
+  const sprite = document.getElementById('subject-sprite') as HTMLImageElement;
+  if (sprite) sprite.src = getPoseUrl('tense');
+  
+  await appendAIMessage(firstMsg);
+
   isProcessing = false;
   enableInput();
 }

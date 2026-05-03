@@ -31,8 +31,11 @@ The project bridges classic web development with state-of-the-art AI pipelines t
 | :--- | :--- | :--- |
 | **Frontend** | Vite + TypeScript | Manages the retro CRT terminal UI, dynamic CSS layered sprites, glitch animations, and state transitions. |
 | **Backend** | FastAPI (Python) | Orchestrates the session state, API routing, LLM interactions, and handles the asynchronous heavy lifting for computer vision tasks. |
-| **LLM Engine** | LangChain & Groq (Llama 3.3) | Drives the conversational logic, emotional state tracking, and output parsing using strict JSON validation. |
-| **Generative AI** | DALL-E 2 & diffusers | Handles generative image inpainting to physically remove objects from the screen in real-time. |
+| **LLM Engine** | LangChain & Groq (Llama 3.3) | Drives the conversational logic and emotional state machine. |
+| **Object Detection** | YOLO-World | Open-vocabulary detection for real-time target isolation. |
+| **Generative AI** | DALL-E 2 & DALL-E 3 | DALL-E 3 for base visual assets; DALL-E 2 for real-time inpainting. |
+| **Local Inpainting** | Diffusers (runwayml) | High-performance local fallback for generative erasure. |
+| **Audio & Music** | Suno AI & Bob Dylan | Atmospheric background loop and cinematic final track. |
 
 ---
 
@@ -48,6 +51,24 @@ When a surrender condition is met, the system utilizes **YOLO-World**, an open-v
 
 ### 3. Generative AI (Image Inpainting)
 Once the computer vision pipeline identifies the object, the **OpenAI DALL-E 2** inpainting model (with an optional local diffusers fallback) takes over. Using dynamically calculated, soft-edged masks and heavily tailored negative/positive prompts, the generative AI seamlessly erases the weapon or badge. It reconstructs the obscured uniform and jungle background, pushing the flattened, altered image back to the frontend to complete the visual surrender.
+
+---
+
+## 📜 Attribution & Transparency
+
+In accordance with project transparency requirements, the following AI tools, models, and external assets have been utilized:
+
+### 🤖 AI Models & APIs
+- **Large Language Model:** Llama 3.3 (via **Groq Cloud API**)
+- **Object Detection:** **YOLO-World** (Open-Vocabulary Vision Transformer)
+- **Generative Inpainting:** **OpenAI DALL-E 2** API
+- **Local Generative Engine:** **Stable Diffusion Inpainting** via Hugging Face **Diffusers**
+- **Base Asset Generation:** **OpenAI DALL-E 3** (Used for generating the soldier poses and background environment)
+
+### 🎨 Creative Assets & Attribution
+- **Background Music (Ambient Loop):** Generated via **Suno AI**.
+- **Cinematic Ending Track:** *"Knockin' on Heaven's Door"* by **Bob Dylan** (1973).
+- **Narrative Inspiration:** Directly inspired by the themes and lyrics of Bob Dylan's 1973 soundtrack for *Pat Garrett and Billy the Kid*.
 
 ---
 
@@ -82,10 +103,16 @@ Install the required Python dependencies:
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the root directory and add your API keys:
+Create a `.env` file in the root directory and add your API keys and configuration:
 ```env
+# API Keys
 GROQ_API_KEY=your_groq_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Inpainting Configuration
+INPAINT_MODE=api              # Set to 'api' to use OpenAI, or 'local' to use Diffusers
+ALLOW_LOCAL_INPAINT=false     # Set to true to allow fallback to local GPU if API fails
+USE_FREE_MODELS=false         # Set to true to bypass OpenAI entirely (requires ALLOW_LOCAL_INPAINT=true)
 ```
 
 ### 3. Frontend Setup (Node.js)
@@ -118,20 +145,31 @@ npm run dev
 **Interaction Tips:**
 - Type your responses in the retro terminal interface.
 - Be patient; Mac is hostile and takes time to trust you.
-- Use the debug buttons (if enabled) to instantly trigger visual pipelines for testing.
 
 ---
 
 ## 🖼️ Example Outputs
 
-### Phase 1: Hostility & Resistance
-![Angry Pose Placeholder](https://via.placeholder.com/600x400/1a4a1a/ff3333?text=Phase+1:+Angry/Tense)
-> *Mac refuses to drop his weapon, reacting aggressively to direct orders.*
+### 1. Retro CRT Terminal Interface
+![Terminal UI Placeholder](screenshots/terminal-ui.png)
+> *The frontend interface featuring a CRT scanline overlay, dynamic typing effects, and system warning logs during conversational breakthroughs.*
 
-### Phase 2: Vulnerability
-![Sad Pose Placeholder](https://via.placeholder.com/600x400/1a4a1a/33ff33?text=Phase+2:+Sad/Vulnerable)
-> *Mac's emotional wall cracks. The AI dynamically swaps the sprite to reflect his sorrow.*
+### 2. Phase 1: Hostility & Resistance
+![Angry Pose Placeholder](screenshots/angry.png)
+> *Mac refuses to drop his weapon, reacting aggressively to direct orders. The LLM dictates an 'angry' pose.*
 
-### Phase 3: The Surrender (Inpainting Result)
-![Inpainting Result Placeholder](https://via.placeholder.com/600x400/1a4a1a/ffffff?text=Phase+3:+Weapon+&+Badge+Removed)
-> *The final generative AI output. YOLO-World and Stable Diffusion successfully erase the M16 and badge, seamlessly reconstructing the background and uniform.*
+### 3. YOLO-World Target Isolation
+![YOLO Mask Placeholder](screenshots/mask.png)
+> *A visualization of the computer vision pipeline. YOLO-World scans the composite scene and generates a high-contrast segmentation mask strictly around the M16 rifle.*
+
+### 4. Cinematic Glitch Transition
+![Glitch Effect Placeholder](screenshots/glitchvid.gif)
+> *Upon surrender, the frontend triggers a dramatic CSS glitch sequence, masking the backend processing time while the inpainting API rewrites the image.*
+
+### 5. Phase 2: Vulnerability
+![Sad Pose Placeholder](screenshots/sad.png)
+> *Mac's emotional wall cracks. The weapon is now visually absent, and the AI dynamically swaps the sprite to reflect his sorrow.*
+
+### 6. Phase 3: Complete Identity Surrender (Final Inpainting)
+![Final Result Placeholder](screenshots/ending.gif)
+> *The final generative AI output. The badge is successfully erased, seamlessly reconstructing the fabric texture of his uniform.*
