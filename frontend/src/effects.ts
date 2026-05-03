@@ -109,7 +109,8 @@ export async function transitionToImage(filename: string): Promise<void> {
 
 /** Final system shutdown effect. */
 export async function triggerShutdown(): Promise<void> {
-  // Start the song as soon as shutdown begins
+  // Stop background music and start the ending song
+  stopBackgroundMusic();
   playEndingSong();
 
   await showDramaticOverlay('SYSTEM SHUTDOWN INITIATED', 2000);
@@ -150,11 +151,49 @@ export async function triggerShutdown(): Promise<void> {
   }
 }
 
-function playEndingSong() {
-  const audio = new Audio('/api/audio/knockin.mp3');
-  audio.volume = 0; // Start at zero for fade-in
+let bgMusic: HTMLAudioElement | null = null;
+
+/** Start the ambient background music in a loop. */
+export function playBackgroundMusic(): void {
+  if (bgMusic) return;
+  bgMusic = new Audio('/api/audio/acoustic.mp3');
+  bgMusic.loop = true;
+  bgMusic.volume = 0.2; // Subtle background level
   
-  audio.play().then(() => {
+  bgMusic.play().catch(() => {
+    // If autoplay is blocked, wait for the first user interaction
+    const startOnInteraction = () => {
+      bgMusic?.play();
+      document.removeEventListener('click', startOnInteraction);
+      document.removeEventListener('keydown', startOnInteraction);
+    };
+    document.addEventListener('click', startOnInteraction);
+    document.addEventListener('keydown', startOnInteraction);
+  });
+}
+
+/** Fade out and stop the background music. */
+export function stopBackgroundMusic(): void {
+  if (!bgMusic) return;
+  
+  const currentBg = bgMusic;
+  bgMusic = null; // Prevent multiple calls
+
+  const fadeOut = setInterval(() => {
+    if (currentBg.volume > 0.02) {
+      currentBg.volume -= 0.02;
+    } else {
+      clearInterval(fadeOut);
+      currentBg.pause();
+    }
+  }, 50);
+}
+
+function playEndingSong() {
+  const endingAudio = new Audio('/api/audio/knockin.mp3');
+  endingAudio.volume = 0; // Start at zero for fade-in
+  
+  endingAudio.play().then(() => {
     // Fade in logic: increase volume to 0.5 over 5 seconds
     const targetVolume = 0.5;
     const fadeDuration = 5000; // 5 seconds
@@ -162,8 +201,8 @@ function playEndingSong() {
     const step = targetVolume / (fadeDuration / intervalTime);
 
     const fadeInterval = setInterval(() => {
-      if (audio.volume < targetVolume) {
-        audio.volume = Math.min(targetVolume, audio.volume + step);
+      if (endingAudio.volume < targetVolume) {
+        endingAudio.volume = Math.min(targetVolume, endingAudio.volume + step);
       } else {
         clearInterval(fadeInterval);
       }

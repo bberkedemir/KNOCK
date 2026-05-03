@@ -9,7 +9,7 @@ import {
 import {
   initEffects, triggerWeaponSurrenderFX, triggerBadgeSurrenderFX,
   transitionToImage, triggerShutdown, setStatusIndicator, setPhaseLabel,
-  stopGlitch
+  stopGlitch, playBackgroundMusic
 } from './effects';
 import { sendMessage, checkInpaintStatus, getPoseUrl } from './api';
 
@@ -24,6 +24,7 @@ let chatInput: HTMLInputElement | null = null;
 function main(): void {
   injectStyles();
   buildDOM();
+  playBackgroundMusic();
   bootSequence();
 }
 
