@@ -79,9 +79,18 @@ sessions: dict[str, dict] = {}
 
 def get_session(sid: str) -> dict:
     if sid not in sessions:
-        sessions[sid] = {"history": [], "phase": 1, "weapon_surrendered": False,
-                         "badge_surrendered": False, "inpaint_status": None,
-                         "current_image": "poses/soldier_idle.png"}
+        # Pre-populate with Mac's cinematic first message
+        first_msg = ("Mama, take this badge off of me... I can't use it anymore... "
+                     "(He blinks, snapping back to reality, tightening his grip on his M16) "
+                     "Who's there?! Step out of the shadows, now!")
+        sessions[sid] = {
+            "history": [("ai", first_msg)], 
+            "phase": 1, 
+            "weapon_surrendered": False,
+            "badge_surrendered": False, 
+            "inpaint_status": None,
+            "current_image": "poses/soldier_idle.png"
+        }
     return sessions[sid]
 
 def build_lc_history(history):

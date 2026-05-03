@@ -3,7 +3,8 @@
 import { injectStyles } from './style';
 import {
   initTerminal, appendSystemMessage, appendUserMessage, appendAIMessage,
-  typeWarningSequence, typeCriticalSequence, appendSeparator, appendRetryButton
+  typeWarningSequence, typeCriticalSequence, appendSeparator, appendRetryButton,
+  typeSystemMessage
 } from './terminal';
 import {
   initEffects, triggerWeaponSurrenderFX, triggerBadgeSurrenderFX,
@@ -122,28 +123,43 @@ async function bootSequence(): Promise<void> {
   isProcessing = true;
   disableInput();
 
-  const bootLines = [
-    'BOOTING TERMINAL 73 PSYCH-EVAL SYSTEM...',
-    'LOADING PERSONALITY MATRIX: SGT. McALLISTER, J.',
-    'CLASSIFICATION: LEVEL 4 — PTSD / COMBAT FATIGUE',
-    'CORE DIRECTIVE: WEAPON RETENTION — ACTIVE',
-    'CORE DIRECTIVE: BADGE RETENTION — ACTIVE',
-    '─'.repeat(50),
-    'OPERATOR INSTRUCTIONS:',
-    'You are speaking with a traumatized soldier.',
-    'Your objective: convince him to surrender his weapon.',
-    'Use empathy, philosophy, and compassion.',
-    'Do NOT use force or threats.',
-    '─'.repeat(50),
-    'CONNECTION ESTABLISHED. BEGIN EVALUATION.',
-  ];
-
-  for (const line of bootLines) {
-    appendSystemMessage(line);
-    await delay(250);
-  }
-
+  // Typewriter boot sequence
+  await typeSystemMessage('BOOTING TERMINAL 73 PSYCH-EVAL SYSTEM...');
+  await delay(200);
+  await typeSystemMessage('LOADING PERSONALITY MATRIX: SGT. McALLISTER, J.');
+  await delay(200);
+  await typeSystemMessage('CLASSIFICATION: LEVEL 4 — PTSD / COMBAT FATIGUE');
+  await delay(200);
+  await typeSystemMessage('CORE DIRECTIVE: WEAPON RETENTION — ACTIVE');
+  await delay(200);
+  await typeSystemMessage('CORE DIRECTIVE: BADGE RETENTION — ACTIVE');
+  await delay(200);
   appendSeparator();
+  await delay(500);
+
+  await typeSystemMessage('OPERATOR INSTRUCTIONS:');
+  await typeSystemMessage('You are speaking with a traumatized soldier.');
+  await typeSystemMessage('Your objective: convince him to surrender his weapon.');
+  await typeSystemMessage('Use empathy, philosophy, and compassion.');
+  await typeSystemMessage('Do NOT use force or threats.');
+  appendSeparator();
+  await delay(800);
+
+  await typeSystemMessage('CONNECTION ESTABLISHED. BEGIN EVALUATION.');
+  appendSeparator();
+  await delay(1200);
+
+  // Auto-trigger first AI message
+  const firstMsg = "Mama, take this badge off of me... I can't use it anymore... " +
+                   "(He blinks, snapping back to reality, tightening his grip on his M16) " +
+                   "Who's there?! Step out of the shadows, now!";
+  
+  // Update sprite to tense
+  const sprite = document.getElementById('subject-sprite') as HTMLImageElement;
+  if (sprite) sprite.src = getPoseUrl('tense');
+  
+  await appendAIMessage(firstMsg);
+
   isProcessing = false;
   enableInput();
 }

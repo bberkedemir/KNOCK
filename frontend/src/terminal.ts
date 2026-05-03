@@ -13,6 +13,30 @@ export function appendSystemMessage(text: string): void {
   appendAndScroll(line);
 }
 
+/** Add a system message with character-by-character typing effect. */
+export function typeSystemMessage(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    const line = createLine('system');
+    line.textContent = '[SYS] ';
+    appendAndScroll(line);
+
+    let i = 0;
+    const speed = 10; // Faster for system messages
+
+    function type() {
+      if (i < text.length) {
+        line.textContent += text[i];
+        i++;
+        scrollToBottom();
+        setTimeout(type, speed);
+      } else {
+        resolve();
+      }
+    }
+    type();
+  });
+}
+
 /** Add a user message with > prefix. */
 export function appendUserMessage(text: string): void {
   const line = createLine('user');
