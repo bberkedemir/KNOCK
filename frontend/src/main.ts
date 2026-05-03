@@ -32,8 +32,6 @@ function buildDOM(): void {
     <div class="status-bar">
       <div class="title">TERMINAL '73 — U.S. ARMED FORCES PSYCH-EVAL SYSTEM v3.7.1</div>
       <div class="status-right">
-        <button id="debug-weapon" class="debug-btn">DEBUG: REMOVE WEAPON</button>
-        <button id="debug-badge" class="debug-btn">DEBUG: REMOVE BADGE</button>
         <span id="phase-label" style="font-size:12px;letter-spacing:1px;">PHASE 1: WEAPON ACTIVE</span>
         <div class="status-indicator">
           <div id="status-dot" class="status-dot"></div>
@@ -85,28 +83,6 @@ function buildDOM(): void {
     }
   });
 
-  // Debug handlers
-  const debugWeaponBtn = document.getElementById('debug-weapon')!;
-  debugWeaponBtn.addEventListener('click', async () => {
-    appendSystemMessage('DEBUG: TRIGGERING INSTANT WEAPON REMOVAL...');
-    try {
-      await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'weapon'));
-      handleSurrender('weapon');
-    } catch (err: any) {
-      appendSystemMessage(`DEBUG ERROR: ${err.message}`);
-    }
-  });
-
-  const debugBadgeBtn = document.getElementById('debug-badge')!;
-  debugBadgeBtn.addEventListener('click', async () => {
-    appendSystemMessage('DEBUG: TRIGGERING INSTANT BADGE REMOVAL...');
-    try {
-      await import('./api').then(api => api.triggerDebugInpaint(sessionId, 'badge'));
-      handleSurrender('badge');
-    } catch (err: any) {
-      appendSystemMessage(`DEBUG ERROR: ${err.message}`);
-    }
-  });
 }
 
 async function bootSequence(): Promise<void> {

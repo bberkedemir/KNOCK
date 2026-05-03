@@ -82,10 +82,16 @@ Install the required Python dependencies:
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the root directory and add your API keys:
+Create a `.env` file in the root directory and add your API keys and configuration:
 ```env
+# API Keys
 GROQ_API_KEY=your_groq_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Inpainting Configuration
+INPAINT_MODE=api              # Set to 'api' to use OpenAI, or 'local' to use Diffusers
+ALLOW_LOCAL_INPAINT=false     # Set to true to allow fallback to local GPU if API fails
+USE_FREE_MODELS=false         # Set to true to bypass OpenAI entirely (requires ALLOW_LOCAL_INPAINT=true)
 ```
 
 ### 3. Frontend Setup (Node.js)
@@ -118,20 +124,31 @@ npm run dev
 **Interaction Tips:**
 - Type your responses in the retro terminal interface.
 - Be patient; Mac is hostile and takes time to trust you.
-- Use the debug buttons (if enabled) to instantly trigger visual pipelines for testing.
 
 ---
 
 ## 🖼️ Example Outputs
 
-### Phase 1: Hostility & Resistance
+### 1. Retro CRT Terminal Interface
+![Terminal UI Placeholder](https://via.placeholder.com/600x400/000000/33ff33?text=Terminal+UI+&+Dialogue)
+> *The frontend interface featuring a CRT scanline overlay, dynamic typing effects, and system warning logs during conversational breakthroughs.*
+
+### 2. Phase 1: Hostility & Resistance
 ![Angry Pose Placeholder](https://via.placeholder.com/600x400/1a4a1a/ff3333?text=Phase+1:+Angry/Tense)
-> *Mac refuses to drop his weapon, reacting aggressively to direct orders.*
+> *Mac refuses to drop his weapon, reacting aggressively to direct orders. The LLM dictates an 'angry' pose.*
 
-### Phase 2: Vulnerability
+### 3. YOLO-World Target Isolation
+![YOLO Mask Placeholder](https://via.placeholder.com/600x400/000000/ffffff?text=YOLO-World+Generated+Mask)
+> *A visualization of the computer vision pipeline. YOLO-World scans the composite scene and generates a high-contrast segmentation mask strictly around the M16 rifle.*
+
+### 4. Cinematic Glitch Transition
+![Glitch Effect Placeholder](https://via.placeholder.com/600x400/1a4a1a/ff00ff?text=Cinematic+Glitch+Transition)
+> *Upon surrender, the frontend triggers a dramatic CSS glitch sequence, masking the backend processing time while the inpainting API rewrites the image.*
+
+### 5. Phase 2: Vulnerability
 ![Sad Pose Placeholder](https://via.placeholder.com/600x400/1a4a1a/33ff33?text=Phase+2:+Sad/Vulnerable)
-> *Mac's emotional wall cracks. The AI dynamically swaps the sprite to reflect his sorrow.*
+> *Mac's emotional wall cracks. The weapon is now visually absent, and the AI dynamically swaps the sprite to reflect his sorrow.*
 
-### Phase 3: The Surrender (Inpainting Result)
-![Inpainting Result Placeholder](https://via.placeholder.com/600x400/1a4a1a/ffffff?text=Phase+3:+Weapon+&+Badge+Removed)
-> *The final generative AI output. YOLO-World and Stable Diffusion successfully erase the M16 and badge, seamlessly reconstructing the background and uniform.*
+### 6. Phase 3: Complete Identity Surrender (Final Inpainting)
+![Final Result Placeholder](https://via.placeholder.com/600x400/1a4a1a/ffffff?text=Phase+3:+Weapon+&+Badge+Removed)
+> *The final generative AI output. The badge is successfully erased, seamlessly reconstructing the fabric texture of his uniform.*
