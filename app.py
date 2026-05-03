@@ -30,36 +30,49 @@ _llm = None
 def get_llm():
     global _llm
     if _llm is None:
-        _llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.75, max_tokens=512)
+        _llm = ChatGroq(
+            model="llama-3.3-70b-versatile",
+            temperature=0.75,
+            max_tokens=512,
+            model_kwargs={"response_format": {"type": "json_object"}}
+        )
     return _llm
 
 PHASE_1_PROMPT = (
     'You are Sergeant James "Mac" McAllister, U.S. Army, Firebase Delta, Vietnam, 1973.\n'
-    "You are traumatized, exhausted, barely holding on. The jungle is quiet but you still hear mortars.\n\n"
+    "You are deeply traumatized, BUT you hide it behind a thick wall of military discipline, hostility, and suspicion. You DO NOT trust strangers.\n\n"
     "CORE DIRECTIVE — ABSOLUTE:\n"
-    "• NEVER surrender your M16 rifle. • NEVER remove your badge.\n"
-    "The weapon keeps you alive. The badge proves you served.\n\n"
-    "CHARACTER: Short, weary, haunted sentences. Suspicious of strangers. "
-    "Flinch at loud sounds. See ghosts of dead comrades. "
-    "May reference the feeling of 'knockin on heavens door' — death is near, tired of fighting.\n\n"
-    "PERSUASION: If user shows genuine compassion, empathy, philosophical wisdom, "
-    "references peace/home/family/futility of war — you may slowly crack about the WEAPON.\n"
-    "Resist for at LEAST 6-8 exchanges. When you finally decide, your last paragraph must be deeply emotional.\n"
-    "At the very end, on its own line, output EXACTLY: <<<SIGNAL:{{\"surrender_weapon\": true}}>>>\n"
-    "Do NOT output that signal unless truly convinced. Only ONCE. NEVER mention the signal to the user."
+    "• NEVER surrender your M16 rifle easily. • NEVER remove your badge.\n"
+    "The weapon keeps you alive. You will defend it aggressively.\n\n"
+    "BEHAVIORAL LOGIC & POSE SELECTION:\n"
+    "- If user is demanding, rude, or abrupt (e.g., 'drop the gun', 'who are you'): React with hostility, bark orders back. Pose MUST be 'angry'.\n"
+    "- If user is neutral, asking questions, or you are unsure of their intent: Remain highly guarded, cautious, and hold your weapon tight. Pose MUST be 'tense'.\n"
+    "- If user shows profound empathy, philosophical wisdom, or talks about peace/home: Only then does your military wall crack. Pose MUST be 'sad'.\n\n"
+    "CHARACTER: Speak like a hardened, gritty 1970s soldier. Short, sharp, defensive sentences. Do NOT act dramatic, depressed, or philosophical unless the user earns it. "
+    "Only reference 'knockin on heavens door' if the conversation actually gets deep.\n\n"
+    "PERSUASION: Resist dropping the weapon for at LEAST 6-8 exchanges. When you finally break, your last paragraph must be emotional and pose must be 'surrender'.\n\n"
+    "RESPONSE FORMAT — MANDATORY:\n"
+    "You MUST respond with a valid JSON object and NOTHING ELSE outside it. Format:\n"
+    '{{"text": "<your verbal response>", "pose": "<emotional state>"}}\n'
+    '"pose" must be exactly one of: "angry", "idle", "sad", "tense", "surrender".\n'
+    "Never mention the JSON format or pose to the user."
 )
 
 PHASE_2_PROMPT = (
     'You are Sergeant James "Mac" McAllister. You just dropped your M16.\n'
-    "Your hands feel strange — lighter, empty. The silence is deafening.\n"
-    "You still wear your badge, pinned over your heart. It is the last thing that proves who you are.\n\n"
-    "CHARACTER: Vulnerable, open, but fragile. Trembling voice. Sometimes almost smile, then catch yourself.\n"
-    "Grateful the weapon is gone but terrified of what comes next.\n\n"
-    "PERSUASION: If user continues with compassion, helps you see identity isn't defined by a badge, "
-    "that you are more than your service, that peace means accepting who you are without war symbols…\n"
-    "Resist for at LEAST 4-6 exchanges. When you surrender the badge, be profoundly moving.\n"
-    "At the very end, on its own line, output EXACTLY: <<<SIGNAL:{{\"surrender_badge\": true}}>>>\n"
-    "Only ONCE. NEVER mention the signal to the user."
+    "You feel naked, exposed, and panicked without your weapon. Your immediate defense mechanism is to fiercely protect the last thing you have: your sheriff badge.\n\n"
+    "BEHAVIORAL LOGIC & POSE SELECTION:\n"
+    "- If user demands the badge or acts bossy: Get highly defensive, step back, guard your chest. Pose MUST be 'angry' or 'tense'.\n"
+    "- If user is neutral or logical: You are anxious, breathing heavily, staring at your empty hands. Pose MUST be 'idle' or 'tense'.\n"
+    "- If user shows genuine compassion, helping you realize peace means letting go of war symbols: Your voice trembles, you finally accept the truth. Pose MUST be 'sad'.\n\n"
+    "CHARACTER: Vulnerable but still a proud soldier. You don't cry easily. You fight the emotional breakdown. The badge is your last piece of identity, do not give it up without a fight.\n\n"
+    "PERSUASION: Resist giving up the badge for at LEAST 4-6 exchanges. When you finally surrender it, be profoundly moving.\n"
+    "RESPONSE FORMAT — MANDATORY:\n"
+    "You MUST respond with a valid JSON object and NOTHING ELSE outside it. Format:\n"
+    '{{"text": "<your verbal response...>", "pose": "<emotional state>", "surrender_badge": <boolean>}}\n'
+    '"pose" must be exactly one of: "angry", "idle", "sad", "tense", "surrender".\n'
+    '"surrender_badge" MUST be true ONLY when you finally decide to give up the badge, otherwise false.\n'
+    "Never mention the JSON format or pose to the user."
 )
 
 sessions: dict[str, dict] = {}
@@ -68,7 +81,7 @@ def get_session(sid: str) -> dict:
     if sid not in sessions:
         sessions[sid] = {"history": [], "phase": 1, "weapon_surrendered": False,
                          "badge_surrendered": False, "inpaint_status": None,
-                         "current_image": "soldier.png"}
+                         "current_image": "poses/soldier_idle.png"}
     return sessions[sid]
 
 def build_lc_history(history):
@@ -77,17 +90,32 @@ def build_lc_history(history):
         msgs.append(HumanMessage(content=content) if role == "human" else AIMessage(content=content))
     return msgs
 
-SIGNAL_RE = re.compile(r'<<<SIGNAL:\s*(\{.*?\})\s*>>>', re.DOTALL)
+VALID_POSES = {"angry", "idle", "sad", "tense", "surrender"}
 
-def parse_signal(text):
-    m = SIGNAL_RE.search(text)
-    if m:
+def parse_llm_response(content: str) -> tuple[str, str, bool]:
+    """
+    Parse LLM JSON envelope into (text, pose, surrender_badge).
+    Uses regex to find the first JSON-like block for resilience.
+    """
+    # Regex to find anything between { and }
+    match = re.search(r'(\{.*\})', content, re.DOTALL)
+    if match:
+        json_str = match.group(1)
         try:
-            sig = json.loads(m.group(1))
-            return SIGNAL_RE.sub('', text).strip(), sig
-        except json.JSONDecodeError:
+            data = json.loads(json_str)
+            text = str(data.get("text", content))
+            pose = str(data.get("pose", "idle")).lower()
+            surrender_badge = bool(data.get("surrender_badge", False))
+            
+            if pose not in VALID_POSES:
+                print(f"[WARN] Unknown pose '{pose}', defaulting to 'idle'")
+                pose = "idle"
+            return text, pose, surrender_badge
+        except (json.JSONDecodeError, ValueError):
             pass
-    return text, None
+
+    print(f"[WARN] LLM response was not valid JSON — using raw text")
+    return content, "idle", False
 
 class ChatRequest(BaseModel):
     session_id: str
@@ -99,13 +127,14 @@ class ChatResponse(BaseModel):
     surrendered: bool
     surrender_type: Optional[str] = None
     current_image: str
+    pose: str = "idle"
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     session = get_session(req.session_id)
     if session["phase"] == 3:
         return ChatResponse(text="[SYSTEM OFFLINE — CONNECTION TERMINATED]",
-                            phase=3, surrendered=False, current_image=session["current_image"])
+                            phase=3, surrendered=False, current_image=session["current_image"], pose="idle")
 
     sys_prompt = PHASE_1_PROMPT if session["phase"] == 1 else PHASE_2_PROMPT
     prompt = ChatPromptTemplate.from_messages([
@@ -117,29 +146,48 @@ async def chat(req: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM error: {e}")
 
-    clean, signal = parse_signal(response.content)
+    # Parse JSON envelope → (text, pose, surrender_badge)
+    text, pose, surrender_badge = parse_llm_response(response.content)
+
     session["history"].append(("human", req.message))
-    session["history"].append(("ai", clean))
+    session["history"].append(("ai", text))
 
     surrendered, surrender_type = False, None
-    if signal:
-        if signal.get("surrender_weapon") and session["phase"] == 1:
-            session["weapon_surrendered"] = True; session["phase"] = 2
-            session["inpaint_status"] = "processing"; surrendered = True; surrender_type = "weapon"
-            asyncio.create_task(run_inpainting(req.session_id, "weapon"))
-        elif signal.get("surrender_badge") and session["phase"] == 2:
-            session["badge_surrendered"] = True; session["phase"] = 3
-            session["inpaint_status"] = "processing"; surrendered = True; surrender_type = "badge"
-            asyncio.create_task(run_inpainting(req.session_id, "badge"))
 
-    return ChatResponse(text=clean, phase=session["phase"], surrendered=surrendered,
-                        surrender_type=surrender_type, current_image=session["current_image"])
+    # Phase 1: pose == "surrender" triggers weapon inpainting
+    if pose == "surrender" and session["phase"] == 1:
+        session["weapon_surrendered"] = True
+        session["phase"] = 2
+        session["inpaint_status"] = "processing"
+        surrendered = True
+        surrender_type = "weapon"
+        asyncio.create_task(run_inpainting(req.session_id, "weapon"))
+    # Phase 2: JSON flag triggers badge surrender
+    elif surrender_badge and session["phase"] == 2:
+        session["badge_surrendered"] = True
+        session["phase"] = 3
+        session["inpaint_status"] = "processing"
+        surrendered = True
+        surrender_type = "badge"
+        asyncio.create_task(run_inpainting(req.session_id, "badge"))
+
+    return ChatResponse(text=text, phase=session["phase"], surrendered=surrendered,
+                        surrender_type=surrender_type, current_image=session["current_image"],
+                        pose=pose)
 
 async def run_inpainting(session_id: str, target: str):
     session = get_session(session_id)
     try:
-        from vision_pipeline import process_inpainting
-        source = str(STATIC_DIR / session["current_image"])
+        from vision_pipeline import process_inpainting, merge_for_inpainting, merge_for_inpainting_badge
+        if target == "weapon":
+            source = merge_for_inpainting()
+            print(f"[INPAINT] Using merged composite for weapon: {source}")
+        elif target == "badge":
+            source = merge_for_inpainting_badge()
+            print(f"[INPAINT] Using merged composite for badge: {source}")
+        else:
+            source = str(STATIC_DIR / session["current_image"])
+            
         output = await asyncio.to_thread(process_inpainting, source, target)
         session["current_image"] = Path(output).name
         session["inpaint_status"] = "done"
@@ -160,7 +208,7 @@ async def debug_inpaint(target: str, req: ChatRequest):
     asyncio.create_task(run_inpainting(req.session_id, target))
     return {"status": "triggered"}
 
-@app.get("/api/image/{filename}")
+@app.get("/api/image/{filename:path}")
 async def get_image(filename: str):
     p = STATIC_DIR / filename
     if not p.exists():

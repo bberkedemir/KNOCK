@@ -3,14 +3,14 @@
 import { injectStyles } from './style';
 import {
   initTerminal, appendSystemMessage, appendUserMessage, appendAIMessage,
-  typeWarningSequence, typeCriticalSequence, appendSeparator
+  typeWarningSequence, typeCriticalSequence, appendSeparator, appendRetryButton
 } from './terminal';
 import {
   initEffects, triggerWeaponSurrenderFX, triggerBadgeSurrenderFX,
   transitionToImage, triggerShutdown, setStatusIndicator, setPhaseLabel,
   stopGlitch
 } from './effects';
-import { sendMessage, checkInpaintStatus, getImageUrl } from './api';
+import { sendMessage, checkInpaintStatus, getPoseUrl } from './api';
 
 // --- State ---
 let sessionId = crypto.randomUUID();
@@ -45,7 +45,10 @@ function buildDOM(): void {
       <div class="image-panel">
         <div class="image-panel-header">— SUBJECT VISUAL FEED —</div>
         <div class="image-viewport" id="image-viewport">
-          <img id="subject-image" src="${getImageUrl('soldier.png')}" alt="Subject" />
+          <div class="scene-container" id="scene-container">
+            <img id="subject-sprite" class="subject-sprite"
+                 src="${getPoseUrl('idle')}" alt="Subject" />
+          </div>
         </div>
         <div class="image-label" id="image-label">SGT. JAMES McALLISTER — FIREBASE DELTA — 1973</div>
       </div>
@@ -67,12 +70,12 @@ function buildDOM(): void {
   // Init modules
   const chatLog = document.getElementById('chat-log')!;
   const viewport = document.getElementById('image-viewport')!;
-  const img = document.getElementById('subject-image') as HTMLImageElement;
+  const sprite = document.getElementById('subject-sprite') as HTMLImageElement;
   const overlayEl = document.getElementById('dramatic-overlay')!;
   chatInput = document.getElementById('chat-input') as HTMLInputElement;
 
   initTerminal(chatLog);
-  initEffects(viewport, img, overlayEl, app);
+  initEffects(viewport, sprite, overlayEl, app);
 
   // Input handler
   chatInput.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -149,6 +152,9 @@ async function handleUserInput(message: string): Promise<void> {
     // Send to backend
     const response = await sendMessage(sessionId, message);
 
+    // Update sprite based on returned pose (smooth crossfade)
+    updateSprite(response.pose);
+
     // Type out AI response
     await appendAIMessage(response.text);
     appendSeparator();
@@ -200,7 +206,19 @@ async function handleSurrender(type: string): Promise<void> {
       appendSystemMessage('VISUAL FEED UPDATED — WEAPON REMOVED FROM SUBJECT');
     } else {
       stopGlitch();
-      appendSystemMessage('VISUAL PROCESSING TIMEOUT — CONTINUING');
+      appendSystemMessage('CRITICAL ERROR: VISUAL PROCESSING TIMEOUT OR FAILURE.');
+      setStatusIndicator('error');
+      appendRetryButton('RETRY WEAPON REMOVAL', async () => {
+        appendSystemMessage('RESTARTING VISUAL ERASURE PROTOCOL...');
+        try {
+          const api = await import('./api');
+          await api.triggerDebugInpaint(sessionId, 'weapon');
+          handleSurrender('weapon');
+        } catch (err: any) {
+          appendSystemMessage(`RETRY FAILED: ${err.message}`);
+        }
+      });
+      return;
     }
 
     appendSeparator();
@@ -242,7 +260,19 @@ async function handleSurrender(type: string): Promise<void> {
       appendSystemMessage('VISUAL FEED UPDATED — BADGE REMOVED FROM SUBJECT');
     } else {
       stopGlitch();
-      appendSystemMessage('VISUAL PROCESSING TIMEOUT — CONTINUING');
+      appendSystemMessage('CRITICAL ERROR: VISUAL PROCESSING TIMEOUT OR FAILURE.');
+      setStatusIndicator('error');
+      appendRetryButton('RETRY BADGE REMOVAL', async () => {
+        appendSystemMessage('RESTARTING VISUAL ERASURE PROTOCOL...');
+        try {
+          const api = await import('./api');
+          await api.triggerDebugInpaint(sessionId, 'badge');
+          handleSurrender('badge');
+        } catch (err: any) {
+          appendSystemMessage(`RETRY FAILED: ${err.message}`);
+        }
+      });
+      return;
     }
 
     appendSeparator();
@@ -263,8 +293,26 @@ async function handleSurrender(type: string): Promise<void> {
 
 async function pollInpaintStatus(): Promise<string | null> {
   const maxAttempts = 60; // 60 * 2s = 2 min max
+  const loadingMessages = [
+    "Isolating anomalous object pixels...",
+    "Applying deep-level artifact erasure...",
+    "Reconstructing background matrix...",
+    "Bypassing visual fail-safe protocols...",
+    "Overwriting core visual memory...",
+    "Synthesizing replacement textures...",
+    "Erasing object signature from database...",
+    "Finalizing image corruption sequence..."
+  ];
+
   for (let i = 0; i < maxAttempts; i++) {
-    await delay(5000);
+    // Print a new loading message occasionally to keep the user engaged
+    if (i < loadingMessages.length) {
+      appendSystemMessage(`[PROCESS] ${loadingMessages[i]}`);
+    } else if (i % 2 === 0) {
+      appendSystemMessage(`[PROCESS] Stabilizing visual output... (${i} / ${maxAttempts})`);
+    }
+
+    await delay(3000); // 3 seconds between checks
     try {
       const status = await checkInpaintStatus(sessionId);
       if (status.status === 'done') return status.current_image;
@@ -282,6 +330,29 @@ function enableInput(): void {
     chatInput.focus();
   }
 }
+
+function updateSprite(pose: string): void {
+  const sprite = document.getElementById('subject-sprite') as HTMLImageElement | null;
+  if (!sprite) return;
+
+  // If we are in phase 2 or 3, we want to start using the dynamic unarmed sprites again.
+  // We MUST remove the .showing-inpainted class, otherwise the flat JPEG from the surrender
+  // sequence will stay stuck on top of the background, hiding our transparent sprites!
+  const sceneContainer = document.getElementById('scene-container');
+  if (sceneContainer && currentPhase >= 2) {
+    sceneContainer.classList.remove('showing-inpainted');
+  }
+
+  // Fade out → swap src → fade in
+  sprite.style.opacity = '0';
+  setTimeout(() => {
+    sprite.src = getPoseUrl(pose, currentPhase);
+    sprite.onload = () => { sprite.style.opacity = '1'; };
+    // Safety timeout in case image already cached and onload doesn't fire
+    setTimeout(() => { sprite.style.opacity = '1'; }, 600);
+  }, 350);
+}
+
 
 function disableInput(): void {
   if (chatInput) chatInput.disabled = true;
